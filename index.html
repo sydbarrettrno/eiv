@@ -1,0 +1,2560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Verificação EIV/RIV/TRIMMC</title>
+<style>
+/* =====================================================================
+   Sistema de Verificação EIV/RIV/TRIMMC — Itapoá/SC
+   Identidade visual: dossiê administrativo municipal.
+   Paleta: tinta (azul-marinho institucional) + maré (verde-água costeiro)
+   sobre papel quente, com detalhes tipográficos que remetem a decretos e
+   documentos oficiais impressos.
+   ===================================================================== */
+
+:root {
+  /* Paleta institucional conforme Manual de Aplicação do Logotipo da Prefeitura de Itapoá */
+  --tinta: #0060A8;
+  --tinta-forte: #004D86;
+  --tinta-suave: #326F9F;
+  --mare: #209738;
+  --mare-forte: #176B28;
+  --mare-clara: #E6F4EA;
+  --papel: #F5F8FB;
+  --cartao: #FFFFFF;
+  --linha: #D8E1EA;
+  --texto: #1F2933;
+  --texto-suave: #52616E;
+  --texto-tenue: #8294A5;
+  --alerta: #7A5A00;
+  --alerta-bg: #FFF8D6;
+  --alerta-borda: #E6D66A;
+  --erro: #B00020;
+  --erro-bg: #FDECEC;
+  --erro-borda: #F3B8B8;
+  --sucesso: #176B28;
+
+  --serif: 'Azo Sans', 'Segoe UI', Arial, sans-serif;
+  --sans: 'Azo Sans', 'Segoe UI', Arial, sans-serif;
+  --mono: 'Courier New', Courier, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  background: var(--papel);
+  color: var(--texto);
+  line-height: 1.55;
+}
+
+/* ---------------------------------------------------------------------
+   Cabeçalho institucional
+   --------------------------------------------------------------------- */
+.app-header {
+  background: #FFFFFF;
+  border-bottom: 4px solid var(--tinta);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  box-shadow: 0 2px 10px rgba(0, 96, 168, 0.08);
+}
+
+.brasao-slot {
+  flex: 0 0 auto;
+  width: 220px;
+  min-height: 72px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px 0;
+}
+
+.brasao-slot img {
+  max-width: 220px;
+  max-height: 72px;
+  object-fit: contain;
+  display: block;
+}
+
+.logo-fallback {
+  display: none;
+  color: var(--tinta);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+  border-left: 5px solid var(--tinta);
+  padding-left: 12px;
+  line-height: 1.15;
+}
+
+.brasao-slot.sem-logo .logo-fallback { display: block; }
+
+.identidade-institucional { min-width: 0; }
+
+.eyebrow {
+  margin: 0 0 2px;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tinta);
+  font-weight: 800;
+}
+
+.app-header h1 {
+  margin: 0 0 4px;
+  font-family: var(--sans);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--tinta-forte);
+  letter-spacing: 0.01em;
+}
+
+.app-subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+}
+
+/* ---------------------------------------------------------------------
+   Aviso oficial
+   --------------------------------------------------------------------- */
+.aviso-fixo {
+  background: var(--alerta-bg);
+  border-bottom: 1px solid var(--alerta-borda);
+  color: var(--alerta);
+  padding: 10px 32px;
+  font-size: 0.85rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.aviso-fixo strong { color: var(--tinta); }
+
+/* ---------------------------------------------------------------------
+   Estrutura geral
+   --------------------------------------------------------------------- */
+.container {
+  max-width: 980px;
+  margin: 28px auto 60px;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.card {
+  position: relative;
+  background: var(--cartao);
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 24px rgba(0, 96, 168, 0.06);
+}
+
+.card h2 {
+  margin-top: 0;
+  font-family: var(--sans);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--tinta);
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--linha);
+  position: relative;
+}
+
+.card h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 46px;
+  height: 2px;
+  background: var(--mare);
+}
+
+.card h3 {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--tinta-suave);
+  margin: 16px 0 8px;
+}
+
+.ajuda {
+  color: var(--texto-suave);
+  font-size: 0.87rem;
+  margin-top: -8px;
+}
+
+/* ---------------------------------------------------------------------
+   Formulário
+   --------------------------------------------------------------------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 16px 20px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+
+label.full {
+  grid-column: 1 / -1;
+  margin-top: 14px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  font-weight: normal;
+  color: var(--texto);
+  padding: 9px 11px;
+  border: 1px solid var(--linha);
+  border-radius: 3px;
+  background: #FFFFFF;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--mare);
+  outline-offset: 1px;
+  border-color: var(--mare);
+}
+
+input[readonly] {
+  background: var(--papel);
+  color: var(--texto-suave);
+  font-family: var(--mono);
+}
+
+textarea { resize: vertical; }
+
+fieldset {
+  border: 1px solid var(--linha);
+  border-radius: 3px;
+  margin: 0 0 14px;
+  padding: 12px 16px 14px;
+  background: var(--papel);
+}
+
+fieldset legend {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--tinta);
+  padding: 0 6px;
+  font-family: var(--sans);
+}
+
+fieldset label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: normal;
+  color: var(--texto);
+  margin-bottom: 7px;
+  font-size: 0.9rem;
+}
+
+.opcoes-radio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.opcoes-radio label {
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  font-weight: normal;
+  color: var(--texto);
+  font-size: 0.9rem;
+}
+
+.resultado-auto {
+  background: var(--mare-clara);
+  border: 1px solid #C3E0D9;
+  border-radius: 3px;
+  padding: 9px 13px;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+  color: var(--mare-forte);
+}
+
+.resultado-auto span { font-family: var(--mono); font-weight: 700; color: var(--tinta); }
+
+.pontuacao-final {
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--tinta);
+  border-top: 1px solid var(--linha);
+  padding-top: 12px;
+  font-size: 1.02rem;
+}
+
+.ajuste-bloco {
+  background: var(--papel);
+  border: 1px dashed var(--linha);
+  border-radius: 3px;
+  padding: 12px 16px;
+  margin-top: 10px;
+}
+
+.alerta-ajuste,
+.alerta-sobreposicao {
+  color: var(--alerta);
+  background: var(--alerta-bg);
+  border: 1px solid var(--alerta-borda);
+  border-radius: 3px;
+  padding: 7px 11px;
+  font-size: 0.85rem;
+  margin: 9px 0 0;
+}
+
+.revisao-manual {
+  margin-bottom: 14px;
+}
+
+/* ---------------------------------------------------------------------
+   Painel de resultado — estilo "selo de processo"
+   --------------------------------------------------------------------- */
+.resultado-painel {
+  border: 2px solid var(--tinta);
+  box-shadow: inset 0 0 0 4px var(--papel), inset 0 0 0 5px var(--mare);
+  padding-top: 30px;
+}
+
+.selo-preliminar {
+  position: absolute;
+  top: 14px;
+  right: -8px;
+  background: var(--tinta);
+  color: #FFFFFF;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  transform: rotate(3deg);
+  border-radius: 2px;
+}
+
+.grid-resultado {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.resultado-item {
+  background: var(--papel);
+  border: 1px solid var(--linha);
+  border-radius: 3px;
+  padding: 13px;
+  text-align: center;
+}
+
+.resultado-item span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.resultado-item strong {
+  font-family: var(--mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--tinta);
+  font-variant-numeric: tabular-nums;
+}
+
+.resultado-item.destaque {
+  background: var(--mare-clara);
+  border-color: #B9DED6;
+}
+
+.resultado-item.destaque strong { color: var(--mare-forte); }
+
+.lista-alertas ul, .lista-pendencias ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+}
+
+.lista-alertas li, .lista-pendencias li {
+  padding: 8px 11px;
+  border-radius: 3px;
+  font-size: 0.86rem;
+  margin-bottom: 7px;
+}
+
+.lista-alertas li:not(.vazio) {
+  background: var(--alerta-bg);
+  color: var(--alerta);
+  border: 1px solid var(--alerta-borda);
+}
+
+.lista-pendencias li:not(.vazio) {
+  background: var(--erro-bg);
+  color: var(--erro);
+  border: 1px solid var(--erro-borda);
+}
+
+.lista-alertas li.vazio, .lista-pendencias li.vazio {
+  color: var(--texto-tenue);
+  background: transparent;
+  padding-left: 0;
+  font-style: italic;
+}
+
+.conclusao-preliminar {
+  background: var(--tinta);
+  border-radius: 3px;
+  padding: 14px 18px;
+}
+
+.conclusao-preliminar h3 {
+  margin-top: 0;
+  color: #C7D6DD;
+  font-family: var(--sans);
+}
+
+#texto-conclusao {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 1.02rem;
+}
+
+/* ---------------------------------------------------------------------
+   Ações
+   --------------------------------------------------------------------- */
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn {
+  padding: 11px 20px;
+  border-radius: 3px;
+  border: 1px solid var(--tinta);
+  background: #FFFFFF;
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn:hover { background: var(--papel); }
+
+.btn-primario {
+  background: var(--tinta);
+  color: #FFFFFF;
+}
+
+.btn-primario:hover { background: var(--tinta-forte); }
+
+.btn-perigo {
+  color: var(--erro);
+  border-color: var(--erro-borda);
+}
+
+.btn-perigo:hover { background: var(--erro-bg); }
+
+.mensagem-acao {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--sucesso);
+  font-weight: 700;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 22px;
+  color: var(--texto-tenue);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--linha);
+}
+
+@media (max-width: 720px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .grid-resultado { grid-template-columns: repeat(2, 1fr); }
+  .app-header, .aviso-fixo { padding-left: 16px; padding-right: 16px; }
+  .app-header { flex-wrap: wrap; }
+}
+
+</style>
+</head>
+<body>
+
+
+<header class="app-header">
+  <div class="brasao-slot" aria-hidden="false" role="img" aria-label="Logotipo oficial da Prefeitura de Itapoá">
+    <img src="assets/logo-prefeitura-itapoa.png" alt="Logotipo oficial da Prefeitura de Itapoá" onerror="this.style.display='none'; this.parentElement.classList.add('sem-logo');">
+    <span class="logo-fallback">PREFEITURA<br>DE ITAPOÁ</span>
+  </div>
+  <div class="identidade-institucional">
+    <p class="eyebrow">Município de Itapoá — Santa Catarina</p>
+    <h1>Sistema de Verificação EIV/RIV/TRIMMC</h1>
+    <p class="app-subtitle">Secretaria de Planejamento Urbano — SEPLAN</p>
+  </div>
+</header>
+
+<div class="aviso-fixo" role="alert">
+  <strong>Aviso:</strong> Ferramenta auxiliar de cálculo e organização de informações. A conclusão final depende de validação técnica da SEPLAN/CMEIV.
+</div>
+
+<main class="container">
+
+  <!-- ============ 1. IDENTIFICAÇÃO DO EMPREENDIMENTO ============ -->
+  <section class="card" id="secao-identificacao">
+    <h2>1. Identificação do empreendimento</h2>
+    <div class="grid-2">
+      <label>Nome do empreendimento *
+        <input type="text" id="nomeEmpreendimento" required>
+      </label>
+      <label>Empreendedor *
+        <input type="text" id="empreendedor" required>
+      </label>
+      <label>CPF/CNPJ *
+        <input type="text" id="cpfCnpj" required>
+      </label>
+      <label>Responsável técnico *
+        <input type="text" id="responsavelTecnico" required>
+      </label>
+      <label>Número do processo/protocolo *
+        <input type="text" id="numeroProcesso" required>
+      </label>
+      <label>Inscrição imobiliária
+        <input type="text" id="inscricaoImobiliaria">
+      </label>
+      <label>Endereço *
+        <input type="text" id="endereco" required>
+      </label>
+      <label>Bairro/localidade *
+        <input type="text" id="bairro" required>
+      </label>
+      <label>Zona urbanística *
+        <input type="text" id="zonaUrbanistica" required>
+      </label>
+      <label>Atividade/uso pretendido *
+        <input type="text" id="atividadeUso" required>
+      </label>
+      <label>Data da análise *
+        <input type="date" id="dataAnalise" required>
+      </label>
+      <label>Responsável pela análise *
+        <input type="text" id="responsavelAnalise" required>
+      </label>
+    </div>
+    <label class="full">Observações gerais
+      <textarea id="observacoesGerais" rows="3"></textarea>
+    </label>
+  </section>
+
+  <!-- ============ 2. DADOS FÍSICOS E ECONÔMICOS ============ -->
+  <section class="card" id="secao-dados-fisicos">
+    <h2>2. Dados físicos e econômicos</h2>
+    <div class="grid-2">
+      <label>Área do terreno (m²) *
+        <input type="number" id="areaTerreno" min="0" step="0.01" required>
+      </label>
+      <label>Área construída (m²) *
+        <input type="number" id="areaConstruida" min="0" step="0.01" required>
+      </label>
+      <label>Área total edificável (m²)
+        <input type="number" id="areaTotalEdificavel" min="0" step="0.01">
+      </label>
+      <label>Valor estimado do investimento (R$) *
+        <input type="number" id="valorInvestimento" min="0.01" step="0.01" required>
+      </label>
+      <label>Valor da UPM utilizada (R$) *
+        <input type="number" id="valorUPM" min="0.01" step="0.01" required>
+      </label>
+      <label>Nº estimado de usuários/habitantes simultâneos *
+        <input type="number" id="populacaoFlutuanteMax" min="0" step="1" required>
+      </label>
+      <label>Área territorial considerada (ha) *
+        <input type="number" id="areaHectares" min="0.0001" step="0.0001" required>
+      </label>
+      <label>DDFM calculada (hab/ha)
+        <input type="text" id="ddfmCalculada" readonly>
+      </label>
+    </div>
+  </section>
+
+  <!-- ============ 3. CRITÉRIO C1 ============ -->
+  <section class="card criterio" id="secao-c1">
+    <h2>3. Critério C1 — Classificação de impacto</h2>
+    <div class="opcoes-radio" id="c1-opcoes">
+      <label><input type="radio" name="c1" value="baixo"> Baixo impacto (25 pontos)</label>
+      <label><input type="radio" name="c1" value="medio"> Médio impacto (50 pontos)</label>
+      <label><input type="radio" name="c1" value="alto"> Alto impacto (75 pontos)</label>
+      <label><input type="radio" name="c1" value="superior"> Impacto superior (100 pontos)</label>
+    </div>
+    <label class="full">Justificativa técnica do C1 *
+      <textarea id="c1-justificativa" rows="2" required></textarea>
+    </label>
+    <div class="ajuste-bloco" data-criterio="c1">
+      <h3>Atenuantes e agravantes — C1</h3>
+      <div class="grid-3">
+        <label>Tipo
+          <select class="ajuste-tipo">
+            <option value="">Nenhum</option>
+            <option value="atenuante">Atenuante</option>
+            <option value="agravante">Agravante</option>
+          </select>
+        </label>
+        <label>Ajuste de pontuação (0 a 10)
+          <input type="number" class="ajuste-valor" min="0" max="10" step="1">
+        </label>
+        <label>Justificativa
+          <input type="text" class="ajuste-justificativa">
+        </label>
+      </div>
+      <p class="alerta-ajuste" hidden>Pontuação alterada manualmente mediante justificativa. Revisar na validação técnica.</p>
+    </div>
+    <div class="pontuacao-final">Pontuação C1: <span id="c1-pontos-final">—</span></div>
+  </section>
+
+  <!-- ============ 4. CRITÉRIO C2 ============ -->
+  <section class="card criterio" id="secao-c2">
+    <h2>4. Critério C2 — Porte do empreendimento</h2>
+    <p>Cálculo automático a partir do valor do investimento e da UPM informados na Seção 2.</p>
+    <div class="resultado-auto">Pontuação automática (UPM): <span id="c2-pontos-auto">—</span></div>
+    <div class="opcoes-radio">
+      <label><input type="radio" name="c2-modo" value="automatico" checked> Manter cálculo automático</label>
+      <label><input type="radio" name="c2-modo" value="manual"> Revisar manualmente</label>
+    </div>
+    <div id="c2-revisao-manual" class="revisao-manual" hidden>
+      <div class="grid-2">
+        <label>Nova pontuação (0 a 100) *
+          <input type="number" id="c2-pontos-manual" min="0" max="100" step="1">
+        </label>
+        <label>Justificativa técnica *
+          <input type="text" id="c2-justificativa-manual">
+        </label>
+      </div>
+    </div>
+    <div class="ajuste-bloco" data-criterio="c2">
+      <h3>Atenuantes e agravantes — C2</h3>
+      <div class="grid-3">
+        <label>Tipo
+          <select class="ajuste-tipo">
+            <option value="">Nenhum</option>
+            <option value="atenuante">Atenuante</option>
+            <option value="agravante">Agravante</option>
+          </select>
+        </label>
+        <label>Ajuste de pontuação (0 a 10)
+          <input type="number" class="ajuste-valor" min="0" max="10" step="1">
+        </label>
+        <label>Justificativa
+          <input type="text" class="ajuste-justificativa">
+        </label>
+      </div>
+      <p class="alerta-ajuste" hidden>Pontuação alterada manualmente mediante justificativa. Revisar na validação técnica.</p>
+    </div>
+    <div class="pontuacao-final">Pontuação C2: <span id="c2-pontos-final">—</span></div>
+  </section>
+
+  <!-- ============ 5. CRITÉRIO C3 ============ -->
+  <section class="card criterio" id="secao-c3">
+    <h2>5. Critério C3 — Sensibilidade da localização</h2>
+    <p class="ajuda">A DDFM calculada na Seção 2 é considerada automaticamente. Marque também as características territoriais aplicáveis.</p>
+
+    <fieldset>
+      <legend>Baixa sensibilidade (25 pontos)</legend>
+      <label><input type="checkbox" id="c3_zonaIndustrial"> Zona industrial</label>
+      <label><input type="checkbox" id="c3_zonaRetroportuaria"> Zona retroportuária</label>
+      <label><input type="checkbox" id="c3_zonaExpansaoInfra"> Zona de expansão urbana com infraestrutura implantada</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Média sensibilidade (50 pontos)</legend>
+      <label><input type="checkbox" id="c3_zonaConsolidada"> Zona urbana consolidada</label>
+      <label><input type="checkbox" id="c3_corredorViario"> Corredor viário estrutural/arterial</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Alta sensibilidade (75 pontos)</legend>
+      <label><input type="checkbox" id="c3_zonaTuristica"> Zona turística</label>
+      <label><input type="checkbox" id="c3_ece"> Eixo Comercial Estruturante (ECE)</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Sensibilidade superior (100 pontos)</legend>
+      <label><input type="checkbox" id="c3_proxPreservacao"> Proximidade de área de preservação</label>
+      <label><input type="checkbox" id="c3_entornoSaude"> Entorno de equipamento de saúde</label>
+      <label><input type="checkbox" id="c3_entornoEducacao"> Entorno de equipamento de educação</label>
+    </fieldset>
+
+    <p class="alerta-sobreposicao" hidden>Há sobreposição de critérios de localização. Aplicada a condição mais restritiva.</p>
+    <div class="resultado-auto">Faixa aplicada: <span id="c3-faixa-aplicada">—</span></div>
+
+    <label class="full">Justificativa técnica do C3 *
+      <textarea id="c3-justificativa" rows="2" required></textarea>
+    </label>
+
+    <div class="ajuste-bloco" data-criterio="c3">
+      <h3>Atenuantes e agravantes — C3</h3>
+      <div class="grid-3">
+        <label>Tipo
+          <select class="ajuste-tipo">
+            <option value="">Nenhum</option>
+            <option value="atenuante">Atenuante</option>
+            <option value="agravante">Agravante</option>
+          </select>
+        </label>
+        <label>Ajuste de pontuação (0 a 10)
+          <input type="number" class="ajuste-valor" min="0" max="10" step="1">
+        </label>
+        <label>Justificativa
+          <input type="text" class="ajuste-justificativa">
+        </label>
+      </div>
+      <p class="alerta-ajuste" hidden>Pontuação alterada manualmente mediante justificativa. Revisar na validação técnica.</p>
+    </div>
+    <div class="pontuacao-final">Pontuação C3: <span id="c3-pontos-final">—</span></div>
+  </section>
+
+  <!-- ============ 6. CRITÉRIO C4 ============ -->
+  <section class="card criterio" id="secao-c4">
+    <h2>6. Critério C4 — Potencial geração de tráfego</h2>
+    <label>Viagens por dia *
+      <input type="number" id="c4-viagens" min="0" step="1" required>
+    </label>
+    <div class="resultado-auto">Pontuação: <span id="c4-pontos-auto">—</span></div>
+    <label class="full">Justificativa técnica do C4 *
+      <textarea id="c4-justificativa" rows="2" required></textarea>
+    </label>
+    <div class="ajuste-bloco" data-criterio="c4">
+      <h3>Atenuantes e agravantes — C4</h3>
+      <div class="grid-3">
+        <label>Tipo
+          <select class="ajuste-tipo">
+            <option value="">Nenhum</option>
+            <option value="atenuante">Atenuante</option>
+            <option value="agravante">Agravante</option>
+          </select>
+        </label>
+        <label>Ajuste de pontuação (0 a 10)
+          <input type="number" class="ajuste-valor" min="0" max="10" step="1">
+        </label>
+        <label>Justificativa
+          <input type="text" class="ajuste-justificativa">
+        </label>
+      </div>
+      <p class="alerta-ajuste" hidden>Pontuação alterada manualmente mediante justificativa. Revisar na validação técnica.</p>
+    </div>
+    <div class="pontuacao-final">Pontuação C4: <span id="c4-pontos-final">—</span></div>
+  </section>
+
+  <!-- ============ 7. CRITÉRIO C5 ============ -->
+  <section class="card criterio" id="secao-c5">
+    <h2>7. Critério C5 — Geração de postos formais de trabalho na operação (PFTO)</h2>
+    <label>PFTO *
+      <input type="number" id="c5-pfto" min="0" step="1" required>
+    </label>
+    <div class="resultado-auto">Pontuação: <span id="c5-pontos-auto">—</span></div>
+    <label class="full">Justificativa técnica do C5 *
+      <textarea id="c5-justificativa" rows="2" required></textarea>
+    </label>
+    <div class="ajuste-bloco" data-criterio="c5">
+      <h3>Atenuantes e agravantes — C5</h3>
+      <div class="grid-3">
+        <label>Tipo
+          <select class="ajuste-tipo">
+            <option value="">Nenhum</option>
+            <option value="atenuante">Atenuante</option>
+            <option value="agravante">Agravante</option>
+          </select>
+        </label>
+        <label>Ajuste de pontuação (0 a 10)
+          <input type="number" class="ajuste-valor" min="0" max="10" step="1">
+        </label>
+        <label>Justificativa
+          <input type="text" class="ajuste-justificativa">
+        </label>
+      </div>
+      <p class="alerta-ajuste" hidden>Pontuação alterada manualmente mediante justificativa. Revisar na validação técnica.</p>
+    </div>
+    <div class="pontuacao-final">Pontuação C5: <span id="c5-pontos-final">—</span></div>
+  </section>
+
+  <!-- ============ 12. RESULTADO EM TELA ============ -->
+  <section class="card resultado-painel" id="secao-resultado">
+    <span class="selo-preliminar">Análise preliminar</span>
+    <h2>Resultado da verificação</h2>
+    <div class="grid-resultado">
+      <div class="resultado-item"><span>C1</span><strong id="res-c1">—</strong></div>
+      <div class="resultado-item"><span>C2</span><strong id="res-c2">—</strong></div>
+      <div class="resultado-item"><span>C3</span><strong id="res-c3">—</strong></div>
+      <div class="resultado-item"><span>C4</span><strong id="res-c4">—</strong></div>
+      <div class="resultado-item"><span>C5</span><strong id="res-c5">—</strong></div>
+      <div class="resultado-item destaque"><span>NP</span><strong id="res-np">—</strong></div>
+      <div class="resultado-item destaque"><span>Percentual TRIMMC</span><strong id="res-percentual">—</strong></div>
+      <div class="resultado-item destaque"><span>Valor estimado do TRIMMC</span><strong id="res-valor">—</strong></div>
+    </div>
+
+    <div class="lista-alertas">
+      <h3>Alertas técnicos</h3>
+      <ul id="lista-alertas">
+        <li class="vazio">Nenhum alerta técnico no momento.</li>
+      </ul>
+    </div>
+
+    <div class="lista-pendencias">
+      <h3>Pendências</h3>
+      <ul id="lista-pendencias">
+        <li class="vazio">Nenhuma pendência identificada.</li>
+      </ul>
+    </div>
+
+    <div class="conclusao-preliminar">
+      <h3>Conclusão preliminar</h3>
+      <p id="texto-conclusao">Preencha o formulário para gerar a conclusão preliminar.</p>
+    </div>
+  </section>
+
+  <!-- ============ AÇÕES ============ -->
+  <section class="card acoes">
+    <button id="btn-gerar-docx" class="btn btn-primario">Gerar relatório DOCX</button>
+    <button id="btn-salvar-rascunho" class="btn">Salvar rascunho no navegador</button>
+    <button id="btn-carregar-rascunho" class="btn">Carregar rascunho salvo</button>
+    <button id="btn-limpar-formulario" class="btn btn-perigo">Limpar formulário</button>
+    <p id="mensagem-acao" class="mensagem-acao" role="status"></p>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <p>Sistema local, estático, sem backend. Ferramenta auxiliar — não substitui parecer técnico da SEPLAN/CMEIV.</p>
+</footer>
+
+
+
+<script>
+
+/* ==== js/data-model.js ==== */
+/**
+ * data-model.js
+ * Estrutura de dados do formulário e constantes normativas
+ * (Minuta de Decreto EIV/RIV/TRIMMC — Itapoá/SC — Capítulo V, Arts. 29 a 38).
+ *
+ * PENDENTE DE VALIDAÇÃO TÉCNICA: a minuta contém trechos com múltiplas
+ * redações concorrentes (texto tachado/substituído) para as faixas de
+ * pontuação. Este sistema adota, como referência de cálculo, as faixas
+ * consolidadas no quadro-resumo do Art. 32 e no Anexo II (exemplo
+ * demonstrativo) da minuta, por serem as mais recentes e coerentes com o
+ * exemplo numérico ali apresentado. Qualquer divergência deve ser
+ * confirmada pela SEPLAN/CMEIV antes do uso oficial da ferramenta.
+ */
+
+(function (global) {
+  'use strict';
+
+  var DataModel = {};
+
+  // -----------------------------------------------------------------
+  // 1. Identificação do empreendimento
+  // -----------------------------------------------------------------
+  DataModel.identificacaoFields = [
+    { id: 'nomeEmpreendimento', label: 'Nome do empreendimento', type: 'text', required: true },
+    { id: 'empreendedor', label: 'Empreendedor', type: 'text', required: true },
+    { id: 'cpfCnpj', label: 'CPF/CNPJ', type: 'text', required: true },
+    { id: 'responsavelTecnico', label: 'Responsável técnico', type: 'text', required: true },
+    { id: 'numeroProcesso', label: 'Número do processo/protocolo', type: 'text', required: true },
+    { id: 'inscricaoImobiliaria', label: 'Inscrição imobiliária', type: 'text', required: false },
+    { id: 'endereco', label: 'Endereço', type: 'text', required: true },
+    { id: 'bairro', label: 'Bairro/localidade', type: 'text', required: true },
+    { id: 'zonaUrbanistica', label: 'Zona urbanística', type: 'text', required: true },
+    { id: 'atividadeUso', label: 'Atividade/uso pretendido', type: 'text', required: true },
+    { id: 'dataAnalise', label: 'Data da análise', type: 'date', required: true },
+    { id: 'responsavelAnalise', label: 'Responsável pela análise', type: 'text', required: true },
+    { id: 'observacoesGerais', label: 'Observações gerais', type: 'textarea', required: false }
+  ];
+
+  // -----------------------------------------------------------------
+  // 2. Dados físicos e econômicos
+  // -----------------------------------------------------------------
+  DataModel.dadosFisicosFields = [
+    { id: 'areaTerreno', label: 'Área do terreno (m²)', type: 'number', required: true, min: 0 },
+    { id: 'areaConstruida', label: 'Área construída (m²)', type: 'number', required: true, min: 0 },
+    { id: 'areaTotalEdificavel', label: 'Área total edificável (m²)', type: 'number', required: false, min: 0 },
+    { id: 'valorInvestimento', label: 'Valor estimado do investimento (R$)', type: 'number', required: true, min: 0.01 },
+    { id: 'valorUPM', label: 'Valor da UPM utilizada (R$)', type: 'number', required: true, min: 0.01 },
+    { id: 'populacaoFlutuanteMax', label: 'Número estimado de usuários/habitantes simultâneos', type: 'number', required: true, min: 0 },
+    { id: 'areaHectares', label: 'Área territorial considerada (ha)', type: 'number', required: true, min: 0.0001 }
+  ];
+
+  // -----------------------------------------------------------------
+  // 3. Critério C1 — Classificação de Impacto (Art. 33)
+  // -----------------------------------------------------------------
+  DataModel.c1Opcoes = [
+    { value: 'baixo', label: 'Baixo impacto', pontos: 25 },
+    { value: 'medio', label: 'Médio impacto', pontos: 50 },
+    { value: 'alto', label: 'Alto impacto', pontos: 75 },
+    { value: 'superior', label: 'Impacto superior', pontos: 100 }
+  ];
+
+  // -----------------------------------------------------------------
+  // 4. Critério C2 — Porte do Empreendimento (Art. 34) — faixas em UPM
+  // -----------------------------------------------------------------
+  DataModel.c2Faixas = [
+    { max: 1000000, pontos: 25, label: 'Pequeno porte (até UPM 1.000.000,00)' },
+    { max: 10000000, pontos: 50, label: 'Médio porte (UPM 1.000.000,01 até 10.000.000,00)' },
+    { max: 50000000, pontos: 75, label: 'Grande porte (UPM 10.000.000,01 até 50.000.000,00)' },
+    { max: Infinity, pontos: 100, label: 'Porte superior (acima de UPM 50.000.000,00)' }
+  ];
+
+  // -----------------------------------------------------------------
+  // 5. Critério C3 — Sensibilidade da Localização (Art. 35)
+  // -----------------------------------------------------------------
+  DataModel.c3Criterios = {
+    baixa: {
+      pontos: 25,
+      label: 'Baixa sensibilidade',
+      opcoes: [
+        { id: 'c3_zonaIndustrial', label: 'Zona industrial' },
+        { id: 'c3_zonaRetroportuaria', label: 'Zona retroportuária' },
+        { id: 'c3_zonaExpansaoInfra', label: 'Zona de expansão urbana com infraestrutura implantada' },
+        { id: 'c3_ddfmBaixa', label: 'DDFM até 15 hab/ha (calculado automaticamente)' }
+      ]
+    },
+    media: {
+      pontos: 50,
+      label: 'Média sensibilidade',
+      opcoes: [
+        { id: 'c3_zonaConsolidada', label: 'Zona urbana consolidada' },
+        { id: 'c3_corredorViario', label: 'Corredor viário estrutural/arterial' },
+        { id: 'c3_ddfmMedia', label: 'DDFM de 16 até 50 hab/ha (calculado automaticamente)' }
+      ]
+    },
+    alta: {
+      pontos: 75,
+      label: 'Alta sensibilidade',
+      opcoes: [
+        { id: 'c3_zonaTuristica', label: 'Zona turística' },
+        { id: 'c3_ece', label: 'Eixo Comercial Estruturante (ECE)' },
+        { id: 'c3_ddfmAlta', label: 'DDFM de 51 até 100 hab/ha (calculado automaticamente)' }
+      ]
+    },
+    superior: {
+      pontos: 100,
+      label: 'Sensibilidade superior',
+      opcoes: [
+        { id: 'c3_proxPreservacao', label: 'Proximidade de área de preservação' },
+        { id: 'c3_entornoSaude', label: 'Entorno de equipamento de saúde' },
+        { id: 'c3_entornoEducacao', label: 'Entorno de equipamento de educação' },
+        { id: 'c3_ddfmSuperior', label: 'DDFM maior que 100 hab/ha (calculado automaticamente)' }
+      ]
+    }
+  };
+
+  DataModel.c3Ordem = ['baixa', 'media', 'alta', 'superior']; // do menos ao mais restritivo
+
+  // -----------------------------------------------------------------
+  // 6. Critério C4 — Potencial de Geração de Tráfego (Art. 36)
+  // -----------------------------------------------------------------
+  DataModel.c4Faixas = [
+    { max: 50, pontos: 25, label: 'Até 50 viagens/dia' },
+    { max: 100, pontos: 50, label: 'De 51 até 100 viagens/dia' },
+    { max: 200, pontos: 75, label: 'De 101 até 200 viagens/dia' },
+    { max: Infinity, pontos: 100, label: 'Acima de 200 viagens/dia' }
+  ];
+
+  // -----------------------------------------------------------------
+  // 7. Critério C5 — Geração de Postos Formais de Trabalho (Art. 37)
+  // -----------------------------------------------------------------
+  DataModel.c5Faixas = [
+    { max: 50, pontos: 25, label: 'Até 50 PFTO' },
+    { max: 300, pontos: 50, label: 'De 51 até 300 PFTO' },
+    { max: 1000, pontos: 75, label: 'De 301 até 1.000 PFTO' },
+    { max: Infinity, pontos: 100, label: 'Acima de 1.000 PFTO' }
+  ];
+
+  // -----------------------------------------------------------------
+  // Pesos da NP (Art. 32, §2º)
+  // -----------------------------------------------------------------
+  DataModel.pesos = {
+    C1: 0.30,
+    C2: 0.25,
+    C3: 0.20,
+    C4: 0.15,
+    C5: 0.10
+  };
+
+  // -----------------------------------------------------------------
+  // Percentual TRIMMC (Art. 31)
+  // -----------------------------------------------------------------
+  DataModel.trimmc = {
+    base: 1,        // 1%
+    fatorNP: 0.04,  // 0,04% por ponto de NP
+    minimo: 1,       // 1%
+    maximo: 5        // 5%
+  };
+
+  // -----------------------------------------------------------------
+  // Estrutura padrão do estado do formulário
+  // -----------------------------------------------------------------
+  DataModel.criarEstadoInicial = function () {
+    return {
+      identificacao: {},
+      dadosFisicos: {},
+      c1: { classificacao: '', pontos: 0, justificativa: '', ajuste: { tipo: '', valor: 0, justificativa: '' } },
+      c2: { modo: 'automatico', pontosAutomatico: 0, pontosManual: null, justificativaManual: '', ajuste: { tipo: '', valor: 0, justificativa: '' } },
+      c3: { marcados: {}, faixaAplicada: '', pontos: 0, justificativa: '', ajuste: { tipo: '', valor: 0, justificativa: '' } },
+      c4: { viagensDia: null, pontos: 0, justificativa: '', ajuste: { tipo: '', valor: 0, justificativa: '' } },
+      c5: { pfto: null, pontos: 0, justificativa: '', ajuste: { tipo: '', valor: 0, justificativa: '' } }
+    };
+  };
+
+  global.DataModel = DataModel;
+})(window);
+
+
+/* ==== js/calculations.js ==== */
+/**
+ * calculations.js
+ * Implementa toda a lógica de cálculo do sistema EIV/RIV/TRIMMC,
+ * conforme Capítulo V (Arts. 29 a 38) da minuta de Decreto.
+ */
+
+(function (global) {
+  'use strict';
+
+  var DM = global.DataModel;
+  var Calc = {};
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function toNumber(v) {
+    if (v === '' || v === null || v === undefined) return NaN;
+    var n = Number(v);
+    return n;
+  }
+
+  // -----------------------------------------------------------------
+  // DDFM = população flutuante máxima / área em hectares
+  // -----------------------------------------------------------------
+  Calc.calcularDDFM = function (populacaoFlutuanteMax, areaHectares) {
+    var pop = toNumber(populacaoFlutuanteMax);
+    var area = toNumber(areaHectares);
+    if (!isFinite(pop) || !isFinite(area) || area <= 0) return null;
+    return pop / area;
+  };
+
+  // -----------------------------------------------------------------
+  // C1 — Classificação de Impacto
+  // -----------------------------------------------------------------
+  Calc.pontosC1 = function (classificacao) {
+    var opt = DM.c1Opcoes.find(function (o) { return o.value === classificacao; });
+    return opt ? opt.pontos : null;
+  };
+
+  // -----------------------------------------------------------------
+  // C2 — Porte do Empreendimento (automático a partir de UPM)
+  // -----------------------------------------------------------------
+  Calc.calcularValorEmUPM = function (valorInvestimento, valorUPM) {
+    var vi = toNumber(valorInvestimento);
+    var vu = toNumber(valorUPM);
+    if (!isFinite(vi) || !isFinite(vu) || vu <= 0) return null;
+    return vi / vu;
+  };
+
+  Calc.pontosC2Automatico = function (valorInvestimento, valorUPM) {
+    var valorEmUPM = Calc.calcularValorEmUPM(valorInvestimento, valorUPM);
+    if (valorEmUPM === null) return null;
+    for (var i = 0; i < DM.c2Faixas.length; i++) {
+      if (valorEmUPM <= DM.c2Faixas[i].max) return DM.c2Faixas[i].pontos;
+    }
+    return null;
+  };
+
+  // -----------------------------------------------------------------
+  // C3 — Sensibilidade da Localização
+  // Regra: aplicar sempre a condição mais restritiva marcada,
+  // considerando também as faixas de DDFM calculadas automaticamente.
+  // -----------------------------------------------------------------
+  Calc.calcularFaixaDDFM = function (ddfm) {
+    if (ddfm === null || !isFinite(ddfm)) return null;
+    if (ddfm <= 15) return 'baixa';
+    if (ddfm <= 50) return 'media';
+    if (ddfm <= 100) return 'alta';
+    return 'superior';
+  };
+
+  Calc.avaliarC3 = function (marcados, ddfm) {
+    var faixaDDFM = Calc.calcularFaixaDDFM(ddfm);
+    var faixasAtivas = [];
+
+    DM.c3Ordem.forEach(function (nivel) {
+      var grupo = DM.c3Criterios[nivel];
+      var algumMarcado = grupo.opcoes.some(function (op) {
+        // Campos de DDFM são preenchidos automaticamente, não via checkbox manual
+        if (op.id.indexOf('c3_ddfm') === 0) return false;
+        return !!marcados[op.id];
+      });
+      if (algumMarcado) faixasAtivas.push(nivel);
+    });
+
+    if (faixaDDFM) faixasAtivas.push(faixaDDFM);
+
+    if (faixasAtivas.length === 0) {
+      return { faixaAplicada: '', pontos: null, sobreposicao: false, faixasAtivas: [] };
+    }
+
+    // condição mais restritiva = índice mais alto em DM.c3Ordem
+    var maisRestritiva = faixasAtivas.reduce(function (acc, nivel) {
+      return DM.c3Ordem.indexOf(nivel) > DM.c3Ordem.indexOf(acc) ? nivel : acc;
+    }, faixasAtivas[0]);
+
+    var faixasUnicas = faixasAtivas.filter(function (v, i, a) { return a.indexOf(v) === i; });
+
+    return {
+      faixaAplicada: maisRestritiva,
+      pontos: DM.c3Criterios[maisRestritiva].pontos,
+      sobreposicao: faixasUnicas.length > 1,
+      faixasAtivas: faixasUnicas
+    };
+  };
+
+  // -----------------------------------------------------------------
+  // C4 — Potencial de Geração de Tráfego
+  // -----------------------------------------------------------------
+  Calc.pontosC4 = function (viagensDia) {
+    var v = toNumber(viagensDia);
+    if (!isFinite(v) || v < 0) return null;
+    for (var i = 0; i < DM.c4Faixas.length; i++) {
+      if (v <= DM.c4Faixas[i].max) return DM.c4Faixas[i].pontos;
+    }
+    return null;
+  };
+
+  // -----------------------------------------------------------------
+  // C5 — Geração de Postos Formais de Trabalho na Operação (PFTO)
+  // -----------------------------------------------------------------
+  Calc.pontosC5 = function (pfto) {
+    var v = toNumber(pfto);
+    if (!isFinite(v) || v < 0) return null;
+    for (var i = 0; i < DM.c5Faixas.length; i++) {
+      if (v <= DM.c5Faixas[i].max) return DM.c5Faixas[i].pontos;
+    }
+    return null;
+  };
+
+  // -----------------------------------------------------------------
+  // Ajustes (atenuantes/agravantes) — Art. 38, §§1º e 2º
+  // Limite: +/- 10 pontos, resultado sempre entre 0 e 100.
+  // -----------------------------------------------------------------
+  Calc.aplicarAjuste = function (pontosBase, ajuste) {
+    if (pontosBase === null || pontosBase === undefined || isNaN(pontosBase)) return null;
+    if (!ajuste || !ajuste.tipo) return clamp(pontosBase, 0, 100);
+
+    var valor = toNumber(ajuste.valor);
+    if (!isFinite(valor)) valor = 0;
+    valor = clamp(Math.abs(valor), 0, 10); // limite normativo de até 10 pontos
+
+    var resultado = pontosBase;
+    if (ajuste.tipo === 'atenuante') resultado = pontosBase - valor;
+    if (ajuste.tipo === 'agravante') resultado = pontosBase + valor;
+
+    return clamp(resultado, 0, 100);
+  };
+
+  // -----------------------------------------------------------------
+  // NP = (C1×0,30) + (C2×0,25) + (C3×0,20) + (C4×0,15) + (C5×0,10)
+  // -----------------------------------------------------------------
+  Calc.calcularNP = function (c1, c2, c3, c4, c5) {
+    var vals = [c1, c2, c3, c4, c5];
+    if (vals.some(function (v) { return v === null || v === undefined || isNaN(v); })) {
+      return null;
+    }
+    var np = (c1 * DM.pesos.C1) + (c2 * DM.pesos.C2) + (c3 * DM.pesos.C3) +
+              (c4 * DM.pesos.C4) + (c5 * DM.pesos.C5);
+    return Math.round(np);
+  };
+
+  // -----------------------------------------------------------------
+  // Percentual TRIMMC = 1% + (NP × 0,04%), limitado entre 1% e 5%
+  // -----------------------------------------------------------------
+  Calc.calcularPercentualTRIMMC = function (np) {
+    if (np === null || np === undefined || isNaN(np)) return null;
+    var pct = DM.trimmc.base + (np * DM.trimmc.fatorNP);
+    return clamp(pct, DM.trimmc.minimo, DM.trimmc.maximo);
+  };
+
+  // -----------------------------------------------------------------
+  // Valor TRIMMC = Valor do investimento × Percentual TRIMMC
+  // -----------------------------------------------------------------
+  Calc.calcularValorTRIMMC = function (valorInvestimento, percentualTRIMMC) {
+    var vi = toNumber(valorInvestimento);
+    if (!isFinite(vi) || percentualTRIMMC === null || percentualTRIMMC === undefined || isNaN(percentualTRIMMC)) {
+      return null;
+    }
+    return vi * (percentualTRIMMC / 100);
+  };
+
+  Calc.clamp = clamp;
+  Calc.toNumber = toNumber;
+
+  global.Calc = Calc;
+})(window);
+
+
+/* ==== js/validators.js ==== */
+/**
+ * validators.js
+ * Validações obrigatórias do formulário (item 18 do prompt de referência).
+ */
+
+(function (global) {
+  'use strict';
+
+  var Validators = {};
+
+  function isEmpty(v) {
+    return v === undefined || v === null || String(v).trim() === '';
+  }
+
+  /**
+   * Valida o estado completo do formulário.
+   * Retorna { valido: bool, pendencias: [string], alertas: [string] }
+   */
+  Validators.validarEstado = function (state, DM) {
+    var pendencias = [];
+    var alertas = [];
+
+    // --- Campos obrigatórios de identificação ---
+    DM.identificacaoFields.forEach(function (f) {
+      if (f.required && isEmpty(state.identificacao[f.id])) {
+        pendencias.push('Campo obrigatório não preenchido: ' + f.label + ' (Identificação do empreendimento).');
+      }
+    });
+
+    // --- Campos obrigatórios de dados físicos/econômicos ---
+    DM.dadosFisicosFields.forEach(function (f) {
+      var valor = state.dadosFisicos[f.id];
+      if (f.required && isEmpty(valor)) {
+        pendencias.push('Campo obrigatório não preenchido: ' + f.label + ' (Dados físicos e econômicos).');
+        return;
+      }
+      if (!isEmpty(valor)) {
+        var n = Number(valor);
+        if (isNaN(n)) {
+          pendencias.push(f.label + ' deve ser um valor numérico válido.');
+        } else if (f.min !== undefined && n < f.min) {
+          pendencias.push(f.label + ' deve ser maior ou igual a ' + f.min + '.');
+        }
+      }
+    });
+
+    // valor de investimento > 0
+    var vi = Number(state.dadosFisicos.valorInvestimento);
+    if (!isEmpty(state.dadosFisicos.valorInvestimento) && (!isFinite(vi) || vi <= 0)) {
+      pendencias.push('O valor estimado do investimento deve ser maior que zero.');
+    }
+
+    // valor de UPM > 0
+    var vu = Number(state.dadosFisicos.valorUPM);
+    if (!isEmpty(state.dadosFisicos.valorUPM) && (!isFinite(vu) || vu <= 0)) {
+      pendencias.push('O valor da UPM utilizada deve ser maior que zero.');
+    }
+
+    // área em hectares > 0 quando há cálculo de DDFM
+    var ah = Number(state.dadosFisicos.areaHectares);
+    if (!isEmpty(state.dadosFisicos.areaHectares) && (!isFinite(ah) || ah <= 0)) {
+      pendencias.push('A área territorial em hectares deve ser maior que zero para o cálculo da DDFM.');
+    }
+
+    // --- C1 ---
+    if (isEmpty(state.c1.classificacao)) {
+      pendencias.push('Critério C1: classificação de impacto não selecionada.');
+    }
+    if (isEmpty(state.c1.justificativa)) {
+      pendencias.push('Critério C1: justificativa técnica obrigatória não preenchida.');
+    }
+
+    // --- C2 ---
+    if (state.c2.modo === 'manual') {
+      if (state.c2.pontosManual === null || state.c2.pontosManual === undefined || isEmpty(String(state.c2.pontosManual))) {
+        pendencias.push('Critério C2: revisão manual selecionada, mas nova pontuação não informada.');
+      }
+      if (isEmpty(state.c2.justificativaManual)) {
+        pendencias.push('Critério C2: revisão manual selecionada, mas justificativa técnica não informada.');
+      }
+    }
+
+    // --- C3 ---
+    if (isEmpty(state.c3.justificativa)) {
+      pendencias.push('Critério C3: justificativa técnica obrigatória não preenchida.');
+    }
+
+    // --- C4 ---
+    var viagens = Number(state.c4.viagensDia);
+    if (isEmpty(state.c4.viagensDia)) {
+      pendencias.push('Critério C4: número de viagens/dia não informado.');
+    } else if (!isFinite(viagens) || viagens < 0) {
+      pendencias.push('Critério C4: viagens/dia deve ser maior ou igual a zero.');
+    }
+    if (isEmpty(state.c4.justificativa)) {
+      pendencias.push('Critério C4: justificativa técnica obrigatória não preenchida.');
+    }
+
+    // --- C5 ---
+    var pfto = Number(state.c5.pfto);
+    if (isEmpty(state.c5.pfto)) {
+      pendencias.push('Critério C5: número de PFTO não informado.');
+    } else if (!isFinite(pfto) || pfto < 0) {
+      pendencias.push('Critério C5: PFTO deve ser maior ou igual a zero.');
+    }
+    if (isEmpty(state.c5.justificativa)) {
+      pendencias.push('Critério C5: justificativa técnica obrigatória não preenchida.');
+    }
+
+    // --- Ajustes: exigir justificativa quando houver tipo selecionado ---
+    ['c1', 'c2', 'c3', 'c4', 'c5'].forEach(function (crit) {
+      var ajuste = state[crit].ajuste;
+      if (ajuste && ajuste.tipo) {
+        if (isEmpty(ajuste.justificativa)) {
+          pendencias.push('Critério ' + crit.toUpperCase() + ': ajuste (atenuante/agravante) informado sem justificativa técnica.');
+        }
+        alertas.push('Pontuação de ' + crit.toUpperCase() + ' alterada manualmente mediante justificativa. Revisar na validação técnica.');
+      }
+    });
+
+    return {
+      valido: pendencias.length === 0,
+      pendencias: pendencias,
+      alertas: alertas
+    };
+  };
+
+  /**
+   * Valida se uma pontuação final está no intervalo 0-100.
+   */
+  Validators.pontuacaoValida = function (pontos) {
+    return typeof pontos === 'number' && isFinite(pontos) && pontos >= 0 && pontos <= 100;
+  };
+
+  /**
+   * Valida se o percentual final está entre 1% e 5%.
+   */
+  Validators.percentualValido = function (pct) {
+    return typeof pct === 'number' && isFinite(pct) && pct >= 1 && pct <= 5;
+  };
+
+  global.Validators = Validators;
+})(window);
+
+
+/* ==== js/zip-writer.js ==== */
+/**
+ * zip-writer.js
+ * Empacotador ZIP nativo, sem bibliotecas externas.
+ * Implementa o suficiente do formato ZIP (método STORED, sem compressão)
+ * para gerar pacotes OpenXML (.docx) válidos, abríveis no Microsoft Word,
+ * LibreOffice Writer e OnlyOffice.
+ *
+ * Referências de formato: especificação PKZIP (APPNOTE.TXT), seções:
+ * 4.3.7 Local file header, 4.3.12 Central directory, 4.3.16 EOCD.
+ */
+
+(function (global) {
+  'use strict';
+
+  // ---------------------------------------------------------------------
+  // CRC32 (tabela pré-computada em tempo de carregamento, sem libs)
+  // ---------------------------------------------------------------------
+  var CRC_TABLE = (function () {
+    var table = new Uint32Array(256);
+    for (var n = 0; n < 256; n++) {
+      var c = n;
+      for (var k = 0; k < 8; k++) {
+        c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      }
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+
+  function crc32(bytes) {
+    var crc = 0xFFFFFFFF;
+    for (var i = 0; i < bytes.length; i++) {
+      crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  // ---------------------------------------------------------------------
+  // Utilitários de codificação
+  // ---------------------------------------------------------------------
+  function strToUtf8Bytes(str) {
+    // TextEncoder é nativo do navegador (não é biblioteca externa).
+    return new TextEncoder().encode(str);
+  }
+
+  function dosDateTime(date) {
+    date = date || new Date();
+    var dosTime = ((date.getHours() & 0x1F) << 11) |
+                  ((date.getMinutes() & 0x3F) << 5) |
+                  ((Math.floor(date.getSeconds() / 2)) & 0x1F);
+    var dosDate = (((date.getFullYear() - 1980) & 0x7F) << 9) |
+                  (((date.getMonth() + 1) & 0x0F) << 5) |
+                  (date.getDate() & 0x1F);
+    return { time: dosTime & 0xFFFF, date: dosDate & 0xFFFF };
+  }
+
+  function writeUint32LE(arr, offset, value) {
+    arr[offset] = value & 0xFF;
+    arr[offset + 1] = (value >>> 8) & 0xFF;
+    arr[offset + 2] = (value >>> 16) & 0xFF;
+    arr[offset + 3] = (value >>> 24) & 0xFF;
+  }
+
+  function writeUint16LE(arr, offset, value) {
+    arr[offset] = value & 0xFF;
+    arr[offset + 1] = (value >>> 8) & 0xFF;
+  }
+
+  // ---------------------------------------------------------------------
+  // ZipWriter
+  // ---------------------------------------------------------------------
+  function ZipWriter() {
+    this.files = []; // { name, data(Uint8Array), crc, size, offset }
+  }
+
+  ZipWriter.prototype.addFile = function (name, content) {
+    var bytes = (typeof content === 'string') ? strToUtf8Bytes(content) : content;
+    this.files.push({
+      name: name,
+      data: bytes,
+      crc: crc32(bytes),
+      size: bytes.length
+    });
+  };
+
+  ZipWriter.prototype.generate = function () {
+    var now = dosDateTime(new Date());
+    var localChunks = [];
+    var centralChunks = [];
+    var offset = 0;
+
+    for (var i = 0; i < this.files.length; i++) {
+      var f = this.files[i];
+      var nameBytes = strToUtf8Bytes(f.name);
+
+      // ---- Local File Header (30 bytes + nome) ----
+      var lfh = new Uint8Array(30 + nameBytes.length);
+      writeUint32LE(lfh, 0, 0x04034b50);   // assinatura local file header
+      writeUint16LE(lfh, 4, 20);           // versão mínima necessária
+      writeUint16LE(lfh, 6, 0);            // flags gerais
+      writeUint16LE(lfh, 8, 0);            // método de compressão: 0 = STORED
+      writeUint16LE(lfh, 10, now.time);    // hora DOS
+      writeUint16LE(lfh, 12, now.date);    // data DOS
+      writeUint32LE(lfh, 14, f.crc);       // CRC-32
+      writeUint32LE(lfh, 18, f.size);      // tamanho comprimido
+      writeUint32LE(lfh, 22, f.size);      // tamanho não-comprimido
+      writeUint16LE(lfh, 26, nameBytes.length); // tamanho do nome
+      writeUint16LE(lfh, 28, 0);           // tamanho de campo extra
+      lfh.set(nameBytes, 30);
+
+      f.offset = offset;
+      localChunks.push(lfh, f.data);
+      offset += lfh.length + f.data.length;
+
+      // ---- Central Directory Header (46 bytes + nome) ----
+      var cdh = new Uint8Array(46 + nameBytes.length);
+      writeUint32LE(cdh, 0, 0x02014b50);   // assinatura central directory
+      writeUint16LE(cdh, 4, 20);           // versão que criou
+      writeUint16LE(cdh, 6, 20);           // versão mínima necessária
+      writeUint16LE(cdh, 8, 0);            // flags
+      writeUint16LE(cdh, 10, 0);           // método: STORED
+      writeUint16LE(cdh, 12, now.time);
+      writeUint16LE(cdh, 14, now.date);
+      writeUint32LE(cdh, 16, f.crc);
+      writeUint32LE(cdh, 20, f.size);
+      writeUint32LE(cdh, 24, f.size);
+      writeUint16LE(cdh, 28, nameBytes.length);
+      writeUint16LE(cdh, 30, 0);           // campo extra
+      writeUint16LE(cdh, 32, 0);           // comentário
+      writeUint16LE(cdh, 34, 0);           // número do disco inicial
+      writeUint16LE(cdh, 36, 0);           // atributos internos
+      writeUint32LE(cdh, 38, 0);           // atributos externos
+      writeUint32LE(cdh, 42, f.offset);    // offset do header local
+      cdh.set(nameBytes, 46);
+
+      centralChunks.push(cdh);
+    }
+
+    var centralSize = centralChunks.reduce(function (s, c) { return s + c.length; }, 0);
+    var centralOffset = offset;
+
+    // ---- End of Central Directory (22 bytes) ----
+    var eocd = new Uint8Array(22);
+    writeUint32LE(eocd, 0, 0x06054b50);
+    writeUint16LE(eocd, 4, 0);   // número deste disco
+    writeUint16LE(eocd, 6, 0);   // disco onde inicia o diretório central
+    writeUint16LE(eocd, 8, this.files.length);
+    writeUint16LE(eocd, 10, this.files.length);
+    writeUint32LE(eocd, 12, centralSize);
+    writeUint32LE(eocd, 16, centralOffset);
+    writeUint16LE(eocd, 20, 0);  // comentário
+
+    var totalSize = offset + centralSize + eocd.length;
+    var out = new Uint8Array(totalSize);
+    var pos = 0;
+    function put(chunk) { out.set(chunk, pos); pos += chunk.length; }
+
+    localChunks.forEach(put);
+    centralChunks.forEach(put);
+    put(eocd);
+
+    return out;
+  };
+
+  ZipWriter.prototype.toBlob = function (mimeType) {
+    var bytes = this.generate();
+    return new Blob([bytes], { type: mimeType || 'application/zip' });
+  };
+
+  global.ZipWriter = ZipWriter;
+})(window);
+
+
+/* ==== js/docx-generator.js ==== */
+/**
+ * docx-generator.js
+ * Geração nativa de relatório .docx (OpenXML), sem bibliotecas externas.
+ * Monta manualmente: [Content_Types].xml, _rels/.rels, word/document.xml,
+ * word/styles.xml, word/settings.xml, e empacota via ZipWriter (zip-writer.js).
+ *
+ * Formatação aplicada: fonte Arial, tamanho 10, espaçamento duplo,
+ * recuo de primeira linha em parágrafos (sem recuo em tabelas),
+ * títulos numerados, tabelas com bordas simples.
+ */
+
+(function (global) {
+  'use strict';
+
+  var DocxGenerator = {};
+
+  // Texto padrão para campos ausentes no relatório final (nunca placeholder
+  // de rascunho/IA — texto administrativo definitivo).
+  var NAO_INFORMADO = 'Não informado';
+
+  // -----------------------------------------------------------------
+  // Escape de texto para XML (sem uso de regex — varredura caractere a
+  // caractere)
+  // -----------------------------------------------------------------
+  function escapeXml(text) {
+    if (text === null || text === undefined) return '';
+    var str = String(text);
+    var out = '';
+    for (var i = 0; i < str.length; i++) {
+      var ch = str[i];
+      if (ch === '&') out += '&amp;';
+      else if (ch === '<') out += '&lt;';
+      else if (ch === '>') out += '&gt;';
+      else if (ch === '"') out += '&quot;';
+      else if (ch === "'") out += '&apos;';
+      else out += ch;
+    }
+    return out;
+  }
+
+  // -----------------------------------------------------------------
+  // Sanitização de nome de arquivo, sem uso de regex.
+  // -----------------------------------------------------------------
+  var INVALID_FILENAME_CHARS = '\\/:*?"<>|';
+
+  DocxGenerator.sanitizarNomeArquivo = function (nome) {
+    if (!nome) return 'SEM_NOME';
+    var out = '';
+    for (var i = 0; i < nome.length; i++) {
+      var ch = nome[i];
+      if (ch === ' ') {
+        out += '_';
+        continue;
+      }
+      if (INVALID_FILENAME_CHARS.indexOf(ch) !== -1) continue;
+      if (ch.charCodeAt(0) < 32) continue; // caracteres de controle
+      out += ch;
+    }
+    // remover underscores duplicados consecutivos
+    var compact = '';
+    for (var j = 0; j < out.length; j++) {
+      if (out[j] === '_' && compact[compact.length - 1] === '_') continue;
+      compact += out[j];
+    }
+    return compact || 'SEM_NOME';
+  };
+
+  // -----------------------------------------------------------------
+  // Normalização defensiva do objeto "report".
+  // Garante que TODAS as chaves de nível superior e os subcampos usados
+  // pela montagem do corpo existam com valores seguros, mesmo que o
+  // chamador (app.js, um teste manual ou uso futuro da API) omita algum
+  // campo. Evita TypeError ("Cannot read properties of undefined") e
+  // impede a geração de um .docx corrompido/incompleto.
+  // -----------------------------------------------------------------
+  function ajusteVazio() { return { tipo: '', valor: 0, justificativa: '' }; }
+
+  DocxGenerator.normalizarReport = function (report) {
+    var r = report || {};
+
+    r.identificacao = r.identificacao || {};
+    r.dadosFisicos = r.dadosFisicos || {};
+
+    r.ddfm = (r.ddfm === undefined) ? null : r.ddfm;
+    r.np = (r.np === undefined) ? null : r.np;
+    r.percentualTRIMMC = (r.percentualTRIMMC === undefined) ? null : r.percentualTRIMMC;
+    r.valorTRIMMC = (r.valorTRIMMC === undefined) ? null : r.valorTRIMMC;
+
+    r.alertas = Array.isArray(r.alertas) ? r.alertas : [];
+    r.pendencias = Array.isArray(r.pendencias) ? r.pendencias : [];
+    r.conclusao = r.conclusao || 'Conclusão preliminar: PENDENTE, em razão da ausência de dados obrigatórios para validação.';
+
+    r.c1 = r.c1 || {};
+    r.c1.pontosFinal = (r.c1.pontosFinal === undefined) ? null : r.c1.pontosFinal;
+    r.c1.classificacaoLabel = r.c1.classificacaoLabel || '';
+    r.c1.justificativa = r.c1.justificativa || '';
+    r.c1.ajuste = r.c1.ajuste || ajusteVazio();
+
+    r.c2 = r.c2 || {};
+    r.c2.pontosAuto = (r.c2.pontosAuto === undefined) ? null : r.c2.pontosAuto;
+    r.c2.pontosFinal = (r.c2.pontosFinal === undefined) ? null : r.c2.pontosFinal;
+    r.c2.modo = r.c2.modo || 'automatico';
+    r.c2.justificativaManual = r.c2.justificativaManual || '';
+    r.c2.ajuste = r.c2.ajuste || ajusteVazio();
+
+    r.c3 = r.c3 || {};
+    r.c3.pontosFinal = (r.c3.pontosFinal === undefined) ? null : r.c3.pontosFinal;
+    r.c3.faixaAplicadaLabel = r.c3.faixaAplicadaLabel || '';
+    r.c3.sobreposicao = !!r.c3.sobreposicao;
+    r.c3.justificativa = r.c3.justificativa || '';
+    r.c3.ajuste = r.c3.ajuste || ajusteVazio();
+
+    r.c4 = r.c4 || {};
+    r.c4.pontosFinal = (r.c4.pontosFinal === undefined) ? null : r.c4.pontosFinal;
+    r.c4.viagensDia = (r.c4.viagensDia === undefined) ? null : r.c4.viagensDia;
+    r.c4.justificativa = r.c4.justificativa || '';
+    r.c4.ajuste = r.c4.ajuste || ajusteVazio();
+
+    r.c5 = r.c5 || {};
+    r.c5.pontosFinal = (r.c5.pontosFinal === undefined) ? null : r.c5.pontosFinal;
+    r.c5.pfto = (r.c5.pfto === undefined) ? null : r.c5.pfto;
+    r.c5.justificativa = r.c5.justificativa || '';
+    r.c5.ajuste = r.c5.ajuste || ajusteVazio();
+
+    return r;
+  };
+
+  DocxGenerator.gerarNomeArquivo = function (nomeEmpreendimento, dataAnalise) {
+    var nomeSanitizado = DocxGenerator.sanitizarNomeArquivo(nomeEmpreendimento || 'EMPREENDIMENTO');
+    var dataStr = dataAnalise || new Date().toISOString().slice(0, 10);
+    var dataSanitizada = DocxGenerator.sanitizarNomeArquivo(dataStr);
+    return 'RELATORIO_EIV_RIV_TRIMMC_' + nomeSanitizado + '_' + dataSanitizada + '.docx';
+  };
+
+  // -----------------------------------------------------------------
+  // Construtores de elementos OpenXML (WordprocessingML)
+  // -----------------------------------------------------------------
+
+  // Parágrafo comum, com recuo de primeira linha e espaçamento duplo
+  function paragraph(text, opts) {
+    opts = opts || {};
+    var bold = opts.bold ? '<w:b/>' : '';
+    var sizeHalfPt = opts.size || 20; // 20 half-points = 10pt
+    var alignment = opts.align ? '<w:jc w:val="' + opts.align + '"/>' : '';
+    var noIndent = opts.noIndent ? '' : '<w:ind w:firstLine="708"/>';
+    var spacingBefore = opts.spacingBefore !== undefined ? opts.spacingBefore : 0;
+    var spacingAfter = opts.spacingAfter !== undefined ? opts.spacingAfter : 200;
+
+    var runs = '';
+    if (Array.isArray(text)) {
+      // permite múltiplos "runs" (ex.: rótulo em negrito + valor normal)
+      text.forEach(function (part) {
+        var partBold = part.bold ? '<w:b/>' : '';
+        runs += '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' +
+          '<w:sz w:val="' + sizeHalfPt + '"/><w:szCs w:val="' + sizeHalfPt + '"/>' + partBold +
+          '</w:rPr><w:t xml:space="preserve">' + escapeXml(part.text) + '</w:t></w:r>';
+      });
+    } else {
+      runs = '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' +
+        '<w:sz w:val="' + sizeHalfPt + '"/><w:szCs w:val="' + sizeHalfPt + '"/>' + bold +
+        '</w:rPr><w:t xml:space="preserve">' + escapeXml(text) + '</w:t></w:r>';
+    }
+
+    return '<w:p><w:pPr>' +
+      '<w:spacing w:before="' + spacingBefore + '" w:after="' + spacingAfter + '" w:line="480" w:lineRule="auto"/>' +
+      noIndent + alignment +
+      '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="' + sizeHalfPt + '"/></w:rPr>' +
+      '</w:pPr>' + runs + '</w:p>';
+  }
+
+  // Título numerado de seção
+  function heading(numero, texto) {
+    return paragraph(numero + '. ' + texto, {
+      bold: true,
+      size: 24,
+      noIndent: true,
+      spacingBefore: 240,
+      spacingAfter: 160
+    });
+  }
+
+  // Título principal do relatório
+  function titlePrincipal(texto) {
+    return paragraph(texto, {
+      bold: true,
+      size: 28,
+      align: 'center',
+      noIndent: true,
+      spacingBefore: 0,
+      spacingAfter: 300
+    });
+  }
+
+  // Célula de tabela (sem recuo de primeira linha)
+  function tableCell(text, opts) {
+    opts = opts || {};
+    var widthAttr = opts.width ? ' w:w="' + opts.width + '" w:type="dxa"' : ' w:w="0" w:type="auto"';
+    var bold = opts.bold ? '<w:b/>' : '';
+    var sizeHalfPt = 20;
+    var content = '<w:p><w:pPr>' +
+      '<w:spacing w:before="40" w:after="40" w:line="360" w:lineRule="auto"/>' +
+      '<w:ind w:firstLine="0"/>' +
+      '</w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' +
+      '<w:sz w:val="' + sizeHalfPt + '"/>' + bold + '</w:rPr>' +
+      '<w:t xml:space="preserve">' + escapeXml(text) + '</w:t></w:r></w:p>';
+
+    return '<w:tc><w:tcPr><w:tcW' + widthAttr + '/>' +
+      '<w:tcBorders>' +
+      '<w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '</w:tcBorders>' +
+      '<w:vAlign w:val="center"/>' +
+      '</w:tcPr>' + content + '</w:tc>';
+  }
+
+  // Largura total de conteúdo da página (A4, conforme margens do sectPr):
+  // 11906 (largura A4) - 1701 (margem esquerda) - 1133 (margem direita) = 9072 twips.
+  var LARGURA_CONTEUDO = 9072;
+
+  // Calcula a grade de colunas (w:tblGrid) a partir das larguras da primeira
+  // linha. Colunas sem largura explícita recebem o espaço restante dividido
+  // igualmente, garantindo que a soma sempre feche em LARGURA_CONTEUDO —
+  // necessário para uma tabela tecnicamente válida e sem avisos de reparo
+  // ao abrir no Word.
+  function calcularGrade(rows) {
+    var referencia = rows[0] || [];
+    var definidas = referencia.map(function (c) { return c.width || 0; });
+    var somaDefinidas = definidas.reduce(function (s, w) { return s + w; }, 0);
+    var qtdIndefinidas = definidas.filter(function (w) { return w === 0; }).length;
+    var restante = Math.max(LARGURA_CONTEUDO - somaDefinidas, 0);
+    var larguraIndefinida = qtdIndefinidas > 0 ? Math.floor(restante / qtdIndefinidas) : 0;
+
+    return definidas.map(function (w) {
+      return w || larguraIndefinida || Math.floor(LARGURA_CONTEUDO / definidas.length);
+    });
+  }
+
+  // Tabela completa a partir de matriz de linhas [ [ {text,bold,width}, ... ], ... ]
+  function table(rows) {
+    var grade = calcularGrade(rows);
+
+    var trs = rows.map(function (row) {
+      var cells = row.map(function (cell, idx) {
+        var largura = cell.width || grade[idx];
+        return tableCell(cell.text, { bold: cell.bold, width: largura });
+      }).join('');
+      return '<w:tr>' + cells + '</w:tr>';
+    }).join('');
+
+    var gridXml = '<w:tblGrid>' + grade.map(function (w) {
+      return '<w:gridCol w:w="' + w + '"/>';
+    }).join('') + '</w:tblGrid>';
+
+    return '<w:tbl>' +
+      '<w:tblPr>' +
+      '<w:tblStyle w:val="TabelaRelatorio"/>' +
+      '<w:tblW w:w="' + LARGURA_CONTEUDO + '" w:type="dxa"/>' +
+      '<w:tblBorders>' +
+      '<w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '</w:tblBorders>' +
+      '<w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/>' +
+      '</w:tblPr>' +
+      gridXml +
+      trs +
+      '</w:tbl>' +
+      paragraph('', { noIndent: true, spacingAfter: 120, spacingBefore: 0 }); // respiro após tabela
+  }
+
+  // -----------------------------------------------------------------
+  // Montagem do corpo do documento a partir dos dados do relatório
+  // -----------------------------------------------------------------
+  function montarCorpo(report) {
+    var body = '';
+
+    body += titlePrincipal('RELATÓRIO DE VERIFICAÇÃO EIV/RIV/TRIMMC');
+
+    body += paragraph(
+      'Ferramenta auxiliar de cálculo e organização de informações. A conclusão final depende de validação técnica da SEPLAN/CMEIV.',
+      { noIndent: true, spacingAfter: 300 }
+    );
+
+    // 1. Identificação do empreendimento
+    body += heading(1, 'IDENTIFICAÇÃO DO EMPREENDIMENTO');
+    body += table([
+      [{ text: 'Nome do empreendimento', bold: true, width: 3000 }, { text: report.identificacao.nomeEmpreendimento || NAO_INFORMADO }],
+      [{ text: 'Empreendedor', bold: true }, { text: report.identificacao.empreendedor || NAO_INFORMADO }],
+      [{ text: 'CPF/CNPJ', bold: true }, { text: report.identificacao.cpfCnpj || NAO_INFORMADO }],
+      [{ text: 'Responsável técnico', bold: true }, { text: report.identificacao.responsavelTecnico || NAO_INFORMADO }],
+      [{ text: 'Endereço', bold: true }, { text: report.identificacao.endereco || NAO_INFORMADO }],
+      [{ text: 'Bairro/localidade', bold: true }, { text: report.identificacao.bairro || NAO_INFORMADO }],
+      [{ text: 'Zona urbanística', bold: true }, { text: report.identificacao.zonaUrbanistica || NAO_INFORMADO }],
+      [{ text: 'Atividade/uso pretendido', bold: true }, { text: report.identificacao.atividadeUso || NAO_INFORMADO }]
+    ]);
+
+    // 2. Dados cadastrais
+    body += heading(2, 'DADOS CADASTRAIS');
+    body += table([
+      [{ text: 'Número do processo/protocolo', bold: true, width: 3000 }, { text: report.identificacao.numeroProcesso || NAO_INFORMADO }],
+      [{ text: 'Inscrição imobiliária', bold: true }, { text: report.identificacao.inscricaoImobiliaria || NAO_INFORMADO }],
+      [{ text: 'Data da análise', bold: true }, { text: report.identificacao.dataAnalise || NAO_INFORMADO }],
+      [{ text: 'Responsável pela análise', bold: true }, { text: report.identificacao.responsavelAnalise || NAO_INFORMADO }]
+    ]);
+    if (report.identificacao.observacoesGerais) {
+      body += paragraph('Observações gerais: ' + report.identificacao.observacoesGerais);
+    }
+
+    // 3. Dados físicos e econômicos
+    body += heading(3, 'DADOS FÍSICOS E ECONÔMICOS');
+    body += table([
+      [{ text: 'Área do terreno', bold: true, width: 3500 }, { text: fmtNum(report.dadosFisicos.areaTerreno) + ' m²' }],
+      [{ text: 'Área construída', bold: true }, { text: fmtNum(report.dadosFisicos.areaConstruida) + ' m²' }],
+      [{ text: 'Área total edificável', bold: true }, { text: fmtNum(report.dadosFisicos.areaTotalEdificavel) + ' m²' }],
+      [{ text: 'Valor estimado do investimento', bold: true }, { text: fmtMoeda(report.dadosFisicos.valorInvestimento) }],
+      [{ text: 'Valor da UPM utilizada', bold: true }, { text: fmtMoeda(report.dadosFisicos.valorUPM) }],
+      [{ text: 'Usuários/habitantes simultâneos (estimativa)', bold: true }, { text: fmtNum(report.dadosFisicos.populacaoFlutuanteMax) }],
+      [{ text: 'Área territorial considerada', bold: true }, { text: fmtNum(report.dadosFisicos.areaHectares) + ' ha' }],
+      [{ text: 'Densidade Demográfica Flutuante Máxima (DDFM)', bold: true }, { text: report.ddfm !== null ? fmtNum(report.ddfm, 2) + ' hab/ha' : 'PENDENTE DE VALIDAÇÃO TÉCNICA' }]
+    ]);
+
+    // 4. Critérios de pontuação
+    body += heading(4, 'CRITÉRIOS DE PONTUAÇÃO');
+    body += table([
+      [{ text: 'Critério', bold: true, width: 2500 }, { text: 'Descrição', bold: true, width: 4000 }, { text: 'Pontuação', bold: true, width: 2000 }],
+      [{ text: 'C1' }, { text: 'Classificação de Impacto — ' + (report.c1.classificacaoLabel || NAO_INFORMADO) }, { text: fmtPontos(report.c1.pontosFinal) }],
+      [{ text: 'C2' }, { text: 'Porte do Empreendimento (' + (report.c2.modo === 'manual' ? 'revisão manual' : 'cálculo automático') + ')' }, { text: fmtPontos(report.c2.pontosFinal) }],
+      [{ text: 'C3' }, { text: 'Sensibilidade da Localização — ' + (report.c3.faixaAplicadaLabel || NAO_INFORMADO) }, { text: fmtPontos(report.c3.pontosFinal) }],
+      [{ text: 'C4' }, { text: 'Geração de Tráfego (' + fmtNum(report.c4.viagensDia) + ' viagens/dia)' }, { text: fmtPontos(report.c4.pontosFinal) }],
+      [{ text: 'C5' }, { text: 'Geração de PFTO (' + fmtNum(report.c5.pfto) + ' postos)' }, { text: fmtPontos(report.c5.pontosFinal) }]
+    ]);
+
+    // Justificativas técnicas
+    body += paragraph('Justificativa técnica — C1: ' + (report.c1.justificativa || 'PENDENTE DE VALIDAÇÃO TÉCNICA'));
+    body += paragraph('Justificativa técnica — C3: ' + (report.c3.justificativa || 'PENDENTE DE VALIDAÇÃO TÉCNICA'));
+    body += paragraph('Justificativa técnica — C4: ' + (report.c4.justificativa || 'PENDENTE DE VALIDAÇÃO TÉCNICA'));
+    body += paragraph('Justificativa técnica — C5: ' + (report.c5.justificativa || 'PENDENTE DE VALIDAÇÃO TÉCNICA'));
+    if (report.c2.modo === 'manual') {
+      body += paragraph('Justificativa técnica — C2 (revisão manual): ' + (report.c2.justificativaManual || 'PENDENTE DE VALIDAÇÃO TÉCNICA'));
+    }
+
+    // 5. Memória de cálculo
+    body += heading(5, 'MEMÓRIA DE CÁLCULO');
+    body += paragraph('DDFM = população flutuante máxima ÷ área em hectares.');
+    body += paragraph('NP = (C1 × 0,30) + (C2 × 0,25) + (C3 × 0,20) + (C4 × 0,15) + (C5 × 0,10).');
+    body += paragraph('Percentual TRIMMC = 1% + (NP × 0,04%), observados os limites mínimo de 1% e máximo de 5%.');
+    body += paragraph('Valor estimado do TRIMMC = Valor do investimento × Percentual TRIMMC.');
+
+    // 6. NP
+    body += heading(6, 'NOTA DE PROPORCIONALIDADE — NP');
+    body += paragraph([
+      { text: 'NP calculada: ', bold: true },
+      { text: report.np !== null ? String(report.np) : 'PENDENTE DE VALIDAÇÃO TÉCNICA' }
+    ], { noIndent: true });
+
+    // 7. Percentual TRIMMC
+    body += heading(7, 'PERCENTUAL TRIMMC');
+    body += paragraph([
+      { text: 'Percentual TRIMMC aplicável: ', bold: true },
+      { text: report.percentualTRIMMC !== null ? fmtNum(report.percentualTRIMMC, 2) + '%' : 'PENDENTE DE VALIDAÇÃO TÉCNICA' }
+    ], { noIndent: true });
+
+    // 8. Valor estimado das medidas
+    body += heading(8, 'VALOR ESTIMADO DAS MEDIDAS');
+    body += paragraph([
+      { text: 'Valor estimado do TRIMMC: ', bold: true },
+      { text: report.valorTRIMMC !== null ? fmtMoeda(report.valorTRIMMC) : 'PENDENTE DE VALIDAÇÃO TÉCNICA' }
+    ], { noIndent: true });
+
+    // 9. Atenuantes, agravantes e ajustes
+    body += heading(9, 'ATENUANTES, AGRAVANTES E AJUSTES');
+    var algumAjuste = false;
+    ['c1', 'c2', 'c3', 'c4', 'c5'].forEach(function (crit) {
+      var a = report[crit].ajuste;
+      if (a && a.tipo) {
+        algumAjuste = true;
+        body += paragraph(
+          crit.toUpperCase() + ' — ' + (a.tipo === 'atenuante' ? 'Atenuante' : 'Agravante') +
+          ' de ' + fmtNum(a.valor) + ' ponto(s). Justificativa: ' + (a.justificativa || 'PENDENTE DE VALIDAÇÃO TÉCNICA')
+        );
+      }
+    });
+    if (!algumAjuste) {
+      body += paragraph('Não foram registrados atenuantes ou agravantes para este processo.');
+    }
+
+    // 10. Alertas e pendências
+    body += heading(10, 'ALERTAS E PENDÊNCIAS');
+    if (report.alertas && report.alertas.length) {
+      report.alertas.forEach(function (a) { body += paragraph('• ' + a); });
+    } else {
+      body += paragraph('Nenhum alerta técnico identificado.');
+    }
+    if (report.pendencias && report.pendencias.length) {
+      report.pendencias.forEach(function (p) { body += paragraph('• ' + p); });
+    } else {
+      body += paragraph('Nenhuma pendência identificada.');
+    }
+
+    // 11. Conclusão preliminar
+    body += heading(11, 'CONCLUSÃO PRELIMINAR');
+    body += paragraph(report.conclusao);
+
+    // 12. Responsável pela análise
+    body += heading(12, 'RESPONSÁVEL PELA ANÁLISE');
+    body += table([
+      [{ text: 'Responsável pela análise', bold: true, width: 3500 }, { text: report.identificacao.responsavelAnalise || NAO_INFORMADO }],
+      [{ text: 'Data da análise', bold: true }, { text: report.identificacao.dataAnalise || NAO_INFORMADO }]
+    ]);
+
+    return body;
+  }
+
+  function fmtNum(v, decimais) {
+    if (v === null || v === undefined || v === '' || isNaN(Number(v))) return NAO_INFORMADO;
+    var n = Number(v);
+    return n.toLocaleString('pt-BR', { minimumFractionDigits: decimais || 0, maximumFractionDigits: decimais || 2 });
+  }
+
+  function fmtMoeda(v) {
+    if (v === null || v === undefined || v === '' || isNaN(Number(v))) return NAO_INFORMADO;
+    return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function fmtPontos(v) {
+    if (v === null || v === undefined || isNaN(v)) return 'PENDENTE';
+    return String(v);
+  }
+
+  // -----------------------------------------------------------------
+  // Arquivos fixos do pacote OpenXML
+  // -----------------------------------------------------------------
+  function contentTypesXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>' +
+      '<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>' +
+      '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+      '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' +
+      '</Types>';
+  }
+
+  function relsXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+      '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>' +
+      '</Relationships>';
+  }
+
+  // docProps/core.xml — metadados essenciais (título, autor, data), evitando
+  // avisos de "propriedades ausentes" em algumas instalações do Word.
+  function corePropsXml(report) {
+    var titulo = 'Relatório de Verificação EIV/RIV/TRIMMC — ' +
+      (report.identificacao.nomeEmpreendimento || NAO_INFORMADO);
+    var autor = report.identificacao.responsavelAnalise || 'SEPLAN/CMEIV';
+    var dataIso = new Date().toISOString().split('.')[0] + 'Z';
+
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" ' +
+      'xmlns:dc="http://purl.org/dc/elements/1.1/" ' +
+      'xmlns:dcterms="http://purl.org/dc/terms/" ' +
+      'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      '<dc:title>' + escapeXml(titulo) + '</dc:title>' +
+      '<dc:creator>' + escapeXml(autor) + '</dc:creator>' +
+      '<dc:subject>EIV/RIV/TRIMMC — Município de Itapoá/SC</dc:subject>' +
+      '<cp:category>Relatório técnico municipal</cp:category>' +
+      '<dcterms:created xsi:type="dcterms:W3CDTF">' + dataIso + '</dcterms:created>' +
+      '<dcterms:modified xsi:type="dcterms:W3CDTF">' + dataIso + '</dcterms:modified>' +
+      '</cp:coreProperties>';
+  }
+
+  // docProps/app.xml — identificação do aplicativo gerador.
+  function appPropsXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">' +
+      '<Application>Sistema de Verificação EIV/RIV/TRIMMC — Itapoá/SC</Application>' +
+      '<DocSecurity>0</DocSecurity>' +
+      '<ScaleCrop>false</ScaleCrop>' +
+      '<LinksUpToDate>false</LinksUpToDate>' +
+      '<SharedDoc>false</SharedDoc>' +
+      '<HyperlinksChanged>false</HyperlinksChanged>' +
+      '<AppVersion>1.0000</AppVersion>' +
+      '</Properties>';
+  }
+
+  function documentRelsXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>' +
+      '</Relationships>';
+  }
+
+  function stylesXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:docDefaults>' +
+      '<w:rPrDefault><w:rPr>' +
+      '<w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' +
+      '<w:sz w:val="20"/><w:szCs w:val="20"/>' +
+      '</w:rPr></w:rPrDefault>' +
+      '</w:docDefaults>' +
+      '<w:style w:type="paragraph" w:default="1" w:styleId="Normal">' +
+      '<w:name w:val="Normal"/>' +
+      '<w:qFormat/>' +
+      '<w:pPr><w:spacing w:after="200" w:line="480" w:lineRule="auto"/><w:ind w:firstLine="708"/></w:pPr>' +
+      '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/></w:rPr>' +
+      '</w:style>' +
+      '<w:style w:type="table" w:styleId="TabelaRelatorio">' +
+      '<w:name w:val="Tabela Relatorio"/>' +
+      '<w:basedOn w:val="TableNormal"/>' +
+      '<w:tblPr><w:tblBorders>' +
+      '<w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '<w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>' +
+      '</w:tblBorders></w:tblPr>' +
+      '</w:style>' +
+      '<w:style w:type="table" w:default="1" w:styleId="TableNormal">' +
+      '<w:name w:val="Normal Table"/>' +
+      '<w:tblPr/>' +
+      '</w:style>' +
+      '</w:styles>';
+  }
+
+  function settingsXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:defaultTabStop w:val="708"/>' +
+      '<w:characterSpacingControl w:val="doNotCompress"/>' +
+      '</w:settings>';
+  }
+
+  function documentXml(report) {
+    var body = montarCorpo(report);
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:body>' + body +
+      '<w:sectPr>' +
+      '<w:pgSz w:w="11906" w:h="16838"/>' +
+      '<w:pgMar w:top="1417" w:right="1133" w:bottom="1417" w:left="1701" w:header="708" w:footer="708" w:gutter="0"/>' +
+      '</w:sectPr>' +
+      '</w:body>' +
+      '</w:document>';
+  }
+
+  // -----------------------------------------------------------------
+  // API pública
+  // -----------------------------------------------------------------
+  DocxGenerator.gerarDocx = function (report) {
+    var r = DocxGenerator.normalizarReport(report);
+    var zip = new ZipWriter();
+    zip.addFile('[Content_Types].xml', contentTypesXml());
+    zip.addFile('_rels/.rels', relsXml());
+    zip.addFile('docProps/core.xml', corePropsXml(r));
+    zip.addFile('docProps/app.xml', appPropsXml());
+    zip.addFile('word/_rels/document.xml.rels', documentRelsXml());
+    zip.addFile('word/document.xml', documentXml(r));
+    zip.addFile('word/styles.xml', stylesXml());
+    zip.addFile('word/settings.xml', settingsXml());
+    return zip.toBlob('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  };
+
+  DocxGenerator.baixarDocx = function (report) {
+    var blob = DocxGenerator.gerarDocx(report);
+    var nomeArquivo = DocxGenerator.gerarNomeArquivo(report.identificacao.nomeEmpreendimento, report.identificacao.dataAnalise);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = nomeArquivo;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    return nomeArquivo;
+  };
+
+  global.DocxGenerator = DocxGenerator;
+})(window);
+
+
+/* ==== js/app.js ==== */
+/**
+ * app.js
+ * Orquestra a interface: leitura do formulário, cálculo em tempo real,
+ * persistência local (localStorage) e disparo da geração do relatório DOCX.
+ */
+
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'eiv_riv_trimmc_rascunho_v1';
+
+  // -----------------------------------------------------------------
+  // Coleta do estado atual do formulário
+  // -----------------------------------------------------------------
+  function coletarEstado() {
+    var state = DataModel.criarEstadoInicial();
+
+    DataModel.identificacaoFields.forEach(function (f) {
+      var el = document.getElementById(f.id);
+      state.identificacao[f.id] = el ? el.value : '';
+    });
+
+    DataModel.dadosFisicosFields.forEach(function (f) {
+      var el = document.getElementById(f.id);
+      state.dadosFisicos[f.id] = el ? el.value : '';
+    });
+
+    // C1
+    var c1Radio = document.querySelector('input[name="c1"]:checked');
+    state.c1.classificacao = c1Radio ? c1Radio.value : '';
+    state.c1.justificativa = valorDe('c1-justificativa');
+    state.c1.ajuste = coletarAjuste('c1');
+
+    // C2
+    var c2ModoRadio = document.querySelector('input[name="c2-modo"]:checked');
+    state.c2.modo = c2ModoRadio ? c2ModoRadio.value : 'automatico';
+    state.c2.pontosManual = valorDe('c2-pontos-manual');
+    state.c2.justificativaManual = valorDe('c2-justificativa-manual');
+    state.c2.ajuste = coletarAjuste('c2');
+
+    // C3
+    Object.keys(DataModel.c3Criterios).forEach(function (nivel) {
+      DataModel.c3Criterios[nivel].opcoes.forEach(function (op) {
+        if (op.id.indexOf('c3_ddfm') === 0) return;
+        var el = document.getElementById(op.id);
+        state.c3.marcados[op.id] = el ? el.checked : false;
+      });
+    });
+    state.c3.justificativa = valorDe('c3-justificativa');
+    state.c3.ajuste = coletarAjuste('c3');
+
+    // C4
+    state.c4.viagensDia = valorDe('c4-viagens');
+    state.c4.justificativa = valorDe('c4-justificativa');
+    state.c4.ajuste = coletarAjuste('c4');
+
+    // C5
+    state.c5.pfto = valorDe('c5-pfto');
+    state.c5.justificativa = valorDe('c5-justificativa');
+    state.c5.ajuste = coletarAjuste('c5');
+
+    return state;
+  }
+
+  function valorDe(id) {
+    var el = document.getElementById(id);
+    return el ? el.value : '';
+  }
+
+  function coletarAjuste(criterioId) {
+    var bloco = document.querySelector('.ajuste-bloco[data-criterio="' + criterioId + '"]');
+    if (!bloco) return { tipo: '', valor: 0, justificativa: '' };
+    return {
+      tipo: bloco.querySelector('.ajuste-tipo').value,
+      valor: bloco.querySelector('.ajuste-valor').value,
+      justificativa: bloco.querySelector('.ajuste-justificativa').value
+    };
+  }
+
+  // -----------------------------------------------------------------
+  // Preenchimento do formulário a partir de um estado salvo
+  // -----------------------------------------------------------------
+  function preencherFormulario(state) {
+    DataModel.identificacaoFields.forEach(function (f) {
+      var el = document.getElementById(f.id);
+      if (el && state.identificacao[f.id] !== undefined) el.value = state.identificacao[f.id];
+    });
+
+    DataModel.dadosFisicosFields.forEach(function (f) {
+      var el = document.getElementById(f.id);
+      if (el && state.dadosFisicos[f.id] !== undefined) el.value = state.dadosFisicos[f.id];
+    });
+
+    if (state.c1.classificacao) {
+      var c1el = document.querySelector('input[name="c1"][value="' + state.c1.classificacao + '"]');
+      if (c1el) c1el.checked = true;
+    }
+    document.getElementById('c1-justificativa').value = state.c1.justificativa || '';
+    preencherAjuste('c1', state.c1.ajuste);
+
+    var c2ModoEl = document.querySelector('input[name="c2-modo"][value="' + (state.c2.modo || 'automatico') + '"]');
+    if (c2ModoEl) c2ModoEl.checked = true;
+    document.getElementById('c2-pontos-manual').value = state.c2.pontosManual || '';
+    document.getElementById('c2-justificativa-manual').value = state.c2.justificativaManual || '';
+    preencherAjuste('c2', state.c2.ajuste);
+    atualizarVisibilidadeC2();
+
+    Object.keys(state.c3.marcados || {}).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.checked = !!state.c3.marcados[id];
+    });
+    document.getElementById('c3-justificativa').value = state.c3.justificativa || '';
+    preencherAjuste('c3', state.c3.ajuste);
+
+    document.getElementById('c4-viagens').value = state.c4.viagensDia || '';
+    document.getElementById('c4-justificativa').value = state.c4.justificativa || '';
+    preencherAjuste('c4', state.c4.ajuste);
+
+    document.getElementById('c5-pfto').value = state.c5.pfto || '';
+    document.getElementById('c5-justificativa').value = state.c5.justificativa || '';
+    preencherAjuste('c5', state.c5.ajuste);
+  }
+
+  function preencherAjuste(criterioId, ajuste) {
+    var bloco = document.querySelector('.ajuste-bloco[data-criterio="' + criterioId + '"]');
+    if (!bloco || !ajuste) return;
+    bloco.querySelector('.ajuste-tipo').value = ajuste.tipo || '';
+    bloco.querySelector('.ajuste-valor').value = ajuste.valor || '';
+    bloco.querySelector('.ajuste-justificativa').value = ajuste.justificativa || '';
+  }
+
+  // -----------------------------------------------------------------
+  // Cálculo completo + atualização da interface
+  // -----------------------------------------------------------------
+  function recalcularTudo() {
+    var state = coletarEstado();
+    var relatorio = computarRelatorio(state);
+    atualizarInterface(relatorio, state);
+    return relatorio;
+  }
+
+  function computarRelatorio(state) {
+    // DDFM
+    var ddfm = Calc.calcularDDFM(state.dadosFisicos.populacaoFlutuanteMax, state.dadosFisicos.areaHectares);
+
+    // C1
+    var c1Base = Calc.pontosC1(state.c1.classificacao);
+    var c1Final = Calc.aplicarAjuste(c1Base, state.c1.ajuste);
+    var c1Label = (DataModel.c1Opcoes.find(function (o) { return o.value === state.c1.classificacao; }) || {}).label || '';
+
+    // C2
+    var c2Auto = Calc.pontosC2Automatico(state.dadosFisicos.valorInvestimento, state.dadosFisicos.valorUPM);
+    var c2Base = state.c2.modo === 'manual'
+      ? (state.c2.pontosManual !== '' ? Calc.clamp(Number(state.c2.pontosManual), 0, 100) : null)
+      : c2Auto;
+    var c2Final = Calc.aplicarAjuste(c2Base, state.c2.ajuste);
+
+    // C3
+    var c3Resultado = Calc.avaliarC3(state.c3.marcados, ddfm);
+    var c3Final = Calc.aplicarAjuste(c3Resultado.pontos, state.c3.ajuste);
+    var faixaLabel = c3Resultado.faixaAplicada ? DataModel.c3Criterios[c3Resultado.faixaAplicada].label : '';
+
+    // C4
+    var c4Base = Calc.pontosC4(state.c4.viagensDia);
+    var c4Final = Calc.aplicarAjuste(c4Base, state.c4.ajuste);
+
+    // C5
+    var c5Base = Calc.pontosC5(state.c5.pfto);
+    var c5Final = Calc.aplicarAjuste(c5Base, state.c5.ajuste);
+
+    // NP e TRIMMC
+    var np = Calc.calcularNP(c1Final, c2Final, c3Final, c4Final, c5Final);
+    var percentualTRIMMC = Calc.calcularPercentualTRIMMC(np);
+    var valorTRIMMC = Calc.calcularValorTRIMMC(state.dadosFisicos.valorInvestimento, percentualTRIMMC);
+
+    // Validação
+    var validacao = Validators.validarEstado(state, DataModel);
+    var alertas = validacao.alertas.slice();
+    if (c3Resultado.sobreposicao) {
+      alertas.unshift('Há sobreposição de critérios de localização. Aplicada a condição mais restritiva.');
+    }
+
+    var conclusao;
+    if (!validacao.valido) {
+      conclusao = 'Conclusão preliminar: PENDENTE, em razão da ausência de dados obrigatórios para validação.';
+    } else {
+      conclusao = 'Conclusão preliminar: cálculo realizado com base nas informações declaradas, sujeito à validação técnica da SEPLAN/CMEIV.';
+    }
+
+    return {
+      identificacao: state.identificacao,
+      dadosFisicos: state.dadosFisicos,
+      ddfm: ddfm,
+      c1: { pontosBase: c1Base, pontosFinal: c1Final, classificacaoLabel: c1Label, justificativa: state.c1.justificativa, ajuste: state.c1.ajuste },
+      c2: { pontosAuto: c2Auto, pontosBase: c2Base, pontosFinal: c2Final, modo: state.c2.modo, justificativaManual: state.c2.justificativaManual, ajuste: state.c2.ajuste },
+      c3: { pontosBase: c3Resultado.pontos, pontosFinal: c3Final, faixaAplicada: c3Resultado.faixaAplicada, faixaAplicadaLabel: faixaLabel, sobreposicao: c3Resultado.sobreposicao, justificativa: state.c3.justificativa, ajuste: state.c3.ajuste },
+      c4: { pontosBase: c4Base, pontosFinal: c4Final, viagensDia: state.c4.viagensDia, justificativa: state.c4.justificativa, ajuste: state.c4.ajuste },
+      c5: { pontosBase: c5Base, pontosFinal: c5Final, pfto: state.c5.pfto, justificativa: state.c5.justificativa, ajuste: state.c5.ajuste },
+      np: np,
+      percentualTRIMMC: percentualTRIMMC,
+      valorTRIMMC: valorTRIMMC,
+      alertas: alertas,
+      pendencias: validacao.pendencias,
+      valido: validacao.valido,
+      conclusao: conclusao
+    };
+  }
+
+  // -----------------------------------------------------------------
+  // Atualização visual
+  // -----------------------------------------------------------------
+  function atualizarInterface(rel, state) {
+    // DDFM
+    document.getElementById('ddfmCalculada').value = rel.ddfm !== null ? rel.ddfm.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) : '';
+
+    // C1
+    setTexto('c1-pontos-final', fmtPontos(rel.c1.pontosFinal));
+    toggleAlertaAjuste('c1', !!(state.c1.ajuste && state.c1.ajuste.tipo));
+
+    // C2
+    setTexto('c2-pontos-auto', fmtPontos(rel.c2.pontosAuto));
+    setTexto('c2-pontos-final', fmtPontos(rel.c2.pontosFinal));
+    toggleAlertaAjuste('c2', !!(state.c2.ajuste && state.c2.ajuste.tipo));
+
+    // C3
+    setTexto('c3-faixa-aplicada', rel.c3.faixaAplicadaLabel || '—');
+    setTexto('c3-pontos-final', fmtPontos(rel.c3.pontosFinal));
+    document.querySelector('.alerta-sobreposicao').hidden = !rel.c3.sobreposicao;
+    toggleAlertaAjuste('c3', !!(state.c3.ajuste && state.c3.ajuste.tipo));
+
+    // C4
+    setTexto('c4-pontos-auto', fmtPontos(rel.c4.pontosFinal));
+    setTexto('c4-pontos-final', fmtPontos(rel.c4.pontosFinal));
+    toggleAlertaAjuste('c4', !!(state.c4.ajuste && state.c4.ajuste.tipo));
+
+    // C5
+    setTexto('c5-pontos-auto', fmtPontos(rel.c5.pontosFinal));
+    setTexto('c5-pontos-final', fmtPontos(rel.c5.pontosFinal));
+    toggleAlertaAjuste('c5', !!(state.c5.ajuste && state.c5.ajuste.tipo));
+
+    // Painel de resultado
+    setTexto('res-c1', fmtPontos(rel.c1.pontosFinal));
+    setTexto('res-c2', fmtPontos(rel.c2.pontosFinal));
+    setTexto('res-c3', fmtPontos(rel.c3.pontosFinal));
+    setTexto('res-c4', fmtPontos(rel.c4.pontosFinal));
+    setTexto('res-c5', fmtPontos(rel.c5.pontosFinal));
+    setTexto('res-np', rel.np !== null ? String(rel.np) : '—');
+    setTexto('res-percentual', rel.percentualTRIMMC !== null ? rel.percentualTRIMMC.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%' : '—');
+    setTexto('res-valor', rel.valorTRIMMC !== null ? rel.valorTRIMMC.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—');
+
+    // Alertas
+    var listaAlertas = document.getElementById('lista-alertas');
+    listaAlertas.innerHTML = '';
+    if (rel.alertas.length === 0) {
+      listaAlertas.innerHTML = '<li class="vazio">Nenhum alerta técnico no momento.</li>';
+    } else {
+      rel.alertas.forEach(function (a) {
+        var li = document.createElement('li');
+        li.textContent = a;
+        listaAlertas.appendChild(li);
+      });
+    }
+
+    // Pendências
+    var listaPendencias = document.getElementById('lista-pendencias');
+    listaPendencias.innerHTML = '';
+    if (rel.pendencias.length === 0) {
+      listaPendencias.innerHTML = '<li class="vazio">Nenhuma pendência identificada.</li>';
+    } else {
+      rel.pendencias.forEach(function (p) {
+        var li = document.createElement('li');
+        li.textContent = p;
+        listaPendencias.appendChild(li);
+      });
+    }
+
+    setTexto('texto-conclusao', rel.conclusao);
+  }
+
+  function setTexto(id, texto) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = texto;
+  }
+
+  function fmtPontos(v) {
+    return (v === null || v === undefined || isNaN(v)) ? '—' : String(v);
+  }
+
+  function toggleAlertaAjuste(criterioId, mostrar) {
+    var bloco = document.querySelector('.ajuste-bloco[data-criterio="' + criterioId + '"]');
+    if (!bloco) return;
+    var alerta = bloco.querySelector('.alerta-ajuste');
+    if (alerta) alerta.hidden = !mostrar;
+  }
+
+  function atualizarVisibilidadeC2() {
+    var modo = document.querySelector('input[name="c2-modo"]:checked');
+    var painel = document.getElementById('c2-revisao-manual');
+    painel.hidden = !(modo && modo.value === 'manual');
+  }
+
+  // -----------------------------------------------------------------
+  // Persistência local (localStorage)
+  // -----------------------------------------------------------------
+  function salvarRascunho() {
+    var state = coletarEstado();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      mostrarMensagem('Rascunho salvo no navegador com sucesso.', false);
+    } catch (e) {
+      mostrarMensagem('Não foi possível salvar o rascunho: ' + e.message, true);
+    }
+  }
+
+  function carregarRascunho() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        mostrarMensagem('Nenhum rascunho salvo foi encontrado.', true);
+        return;
+      }
+      var state = JSON.parse(raw);
+      preencherFormulario(state);
+      recalcularTudo();
+      mostrarMensagem('Rascunho carregado com sucesso.', false);
+    } catch (e) {
+      mostrarMensagem('Não foi possível carregar o rascunho: ' + e.message, true);
+    }
+  }
+
+  function limparFormulario() {
+    if (!confirm('Deseja realmente limpar todos os campos do formulário?')) return;
+    document.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], textarea').forEach(function (el) {
+      el.value = '';
+    });
+    document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(function (el) {
+      el.checked = false;
+    });
+    document.querySelectorAll('select.ajuste-tipo').forEach(function (el) { el.value = ''; });
+    var c2AutoRadio = document.querySelector('input[name="c2-modo"][value="automatico"]');
+    if (c2AutoRadio) c2AutoRadio.checked = true;
+    atualizarVisibilidadeC2();
+    recalcularTudo();
+    mostrarMensagem('Formulário limpo.', false);
+  }
+
+  function mostrarMensagem(texto, erro) {
+    var el = document.getElementById('mensagem-acao');
+    el.textContent = texto;
+    el.style.color = erro ? 'var(--vermelho-erro)' : 'var(--verde-ok)';
+    setTimeout(function () { el.textContent = ''; }, 5000);
+  }
+
+  // -----------------------------------------------------------------
+  // Geração do relatório DOCX
+  // -----------------------------------------------------------------
+  function gerarRelatorioDocx() {
+    var relatorio = recalcularTudo();
+    try {
+      var nomeArquivo = DocxGenerator.baixarDocx(relatorio);
+      mostrarMensagem('Relatório gerado: ' + nomeArquivo, false);
+    } catch (e) {
+      mostrarMensagem('Erro ao gerar o relatório DOCX: ' + e.message, true);
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Inicialização e vinculação de eventos
+  // -----------------------------------------------------------------
+  function init() {
+    document.querySelectorAll('#secao-identificacao input, #secao-identificacao textarea, ' +
+      '#secao-dados-fisicos input, ' +
+      '#secao-c1 input, #secao-c1 textarea, #secao-c1 select, ' +
+      '#secao-c2 input, #secao-c2 textarea, #secao-c2 select, ' +
+      '#secao-c3 input, #secao-c3 textarea, #secao-c3 select, ' +
+      '#secao-c4 input, #secao-c4 textarea, #secao-c4 select, ' +
+      '#secao-c5 input, #secao-c5 textarea, #secao-c5 select'
+    ).forEach(function (el) {
+      el.addEventListener('input', recalcularTudo);
+      el.addEventListener('change', recalcularTudo);
+    });
+
+    document.querySelectorAll('input[name="c2-modo"]').forEach(function (el) {
+      el.addEventListener('change', function () {
+        atualizarVisibilidadeC2();
+        recalcularTudo();
+      });
+    });
+
+    document.getElementById('btn-gerar-docx').addEventListener('click', gerarRelatorioDocx);
+    document.getElementById('btn-salvar-rascunho').addEventListener('click', salvarRascunho);
+    document.getElementById('btn-carregar-rascunho').addEventListener('click', carregarRascunho);
+    document.getElementById('btn-limpar-formulario').addEventListener('click', limparFormulario);
+
+    atualizarVisibilidadeC2();
+    recalcularTudo();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
+
+</script>
+</body>
+</html>
